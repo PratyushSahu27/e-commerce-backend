@@ -6,14 +6,19 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
+const MONGODB_URL = process.env.MONGODB_URL
 
 app.use(express.json());
 app.use(cors());
 
 // Database Connection With MongoDB
-mongoose.connect("mongodb+srv://sahupratyush27:JPTcqmEU4J2jE1cC@cluster0.2oxwcys.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0/e-commerce");
-// paste your mongoDB Connection string above with password
-// password should not contain '@' special character
+try {
+  mongoose.connect(MONGODB_URL);
+  console.log('Connect to MongoDB')
+}
+catch (e) {
+  console.log('Error in connecting to MongoDB - ', e)
+}
 
 //Image Storage Engine 
 const storage = multer.diskStorage({

@@ -1,4 +1,3 @@
-const port = 4000;
 const express = require("express");
 const app = express();
 const mongoose = require("mongoose");
@@ -9,6 +8,7 @@ const cors = require("cors");
 const dotenv = require("dotenv")
 
 dotenv.config();
+const port = process.env.PORT
 const MONGODB_URL = process.env.DB_URL
 
 app.use(express.json());

@@ -6,7 +6,10 @@ const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
-const MONGODB_URL = process.env.MONGODB_URL
+const dotenv = require("dotenv")
+
+dotenv.config();
+const MONGODB_URL = process.env.DB_URL
 
 app.use(express.json());
 app.use(cors());
@@ -14,7 +17,7 @@ app.use(cors());
 // Database Connection With MongoDB
 try {
   mongoose.connect(MONGODB_URL);
-  console.log('Connect to MongoDB')
+  console.log('Connected to MongoDB')
 }
 catch (e) {
   console.log('Error in connecting to MongoDB - ', e)

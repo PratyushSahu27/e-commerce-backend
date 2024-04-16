@@ -149,7 +149,7 @@ app.get("/", (req, res) => {
 app.post("/login", async (req, res) => {
   console.log("Login");
   let success = false;
-  let user = await Users.findOne({ email: req.body.email });
+  let user = await Users.findOne({ smId: req.body.smId });
   if (user) {
     const passCompare = req.body.password === user.password;
     if (passCompare) {
@@ -165,13 +165,13 @@ app.post("/login", async (req, res) => {
     } else {
       return res.status(400).json({
         success: success,
-        errors: "please try with correct email/password",
+        errors: "Invalid password. Please try again.",
       });
     }
   } else {
     return res.status(400).json({
       success: success,
-      errors: "please try with correct email/password",
+      errors: "User not found. Please try with valid SM ID.",
     });
   }
 });
@@ -185,6 +185,14 @@ app.post("/signup", async (req, res) => {
     return res.status(400).json({
       success: success,
       errors: "Existing user found with this Phone number",
+    });
+  }
+  
+  let check2 = await Users.findOne({ smId: req.body.guideId });
+  if(!check2) {
+    return res.status(400).json({
+      success: success,
+      errors: "Guide ID is invalid"
     });
   }
 

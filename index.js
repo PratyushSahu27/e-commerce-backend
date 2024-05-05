@@ -125,11 +125,14 @@ const Product = mongoose.model("Product", {
     type: String,
     required: true,
   },
-  new_price: {
+  market_retail_price: {
     type: Number,
   },
-  old_price: {
+  shoora_price: {
     type: Number,
+  },
+  purchase_value: {
+    type: Number
   },
   date: {
     type: Date,
@@ -268,9 +271,9 @@ app.get("/newcollections", async (req, res) => {
 
 app.get("/popularinwomen", async (req, res) => {
   let products = await Product.find({});
-  let arr = products.splice(0, 4);
+  // let arr = products.splice(0, 4);
   console.log("Popular In Women");
-  res.send(arr);
+  res.send(products);
 });
 
 //Create an endpoint for saving the product in cart
@@ -321,8 +324,9 @@ app.post("/addproduct", async (req, res) => {
     name: req.body.name,
     image: req.body.image,
     category: req.body.category,
-    new_price: req.body.new_price,
-    old_price: req.body.old_price,
+    market_retail_price: req.body.retail_price,
+    shoora_price: req.body.shoora_price,
+    purchase_value: req.body.purchase_value
   });
   console.log(product);
   await product.save();

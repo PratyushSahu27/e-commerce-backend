@@ -1,17 +1,18 @@
 import express from "express";
 const app = express();
-import mongoose from "mongoose";
-import jwt from "jsonwebtoken"
+import mongoose, { Schema } from "mongoose";
+import jwt from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 import { smIdGenerator } from "./files/utils.js";
-import { error } from "console";
+import { v4 as uuidv4 } from "uuid";
+import { type } from "os";
 
 dotenv.config();
-const port = process.env.PORT
-const MONGODB_URL = process.env.DB_URL
+const port = process.env.PORT;
+const MONGODB_URL = process.env.DB_URL;
 
 app.use(express.json());
 app.use(cors());
@@ -19,10 +20,10 @@ app.use(cors());
 // Database Connection With MongoDB
 try {
   mongoose.connect(MONGODB_URL);
-  console.log('Connected to MongoDB')
-}
-catch (e) {
-  console.log('Error in connecting to MongoDB - ', e)
+
+  console.log("Connected to MongoDB");
+} catch (e) {
+  console.log("Error in connecting to MongoDB - ", e);
 }
 
 //Image Storage Engine
@@ -40,7 +41,7 @@ const upload = multer({ storage: storage });
 app.post("/upload", upload.single("product"), (req, res) => {
   res.json({
     success: 1,
-    image_url: `http://162.240.173.162:8080/images/${req.file.filename}`,
+    image_url: `http://localhost:8080/images/${req.file.filename}`,
   });
 });
 app.use("/images", express.static("upload/images"));
@@ -60,6 +61,53 @@ const fetchuser = async (req, res, next) => {
   }
 };
 
+const Address = new Schema({
+  state: {
+    type: String,
+  },
+  city: {
+    type: String,
+  },
+  address: {
+    type: String,
+    required: true,
+  },
+  pincode: {
+    type: Number,
+    required: true,
+  },
+});
+
+// Schema for order
+const Orders = mongoose.model("orders", {
+  orderId: {
+    type: Number,
+    unique: true,
+  },
+  orderItems: {
+    type: Array,
+  },
+  smId: {
+    type: String,
+  },
+  orderValue: {
+    type: Number,
+  },
+  orderPurchaseValue: {
+    type: Number,
+  },
+  orderDate: {
+    type: Date,
+    default: Date.now,
+  },
+  address: Address,
+  completed: {
+    type: Boolean,
+    default: false,
+  },
+  alternateContactNumber: Number,
+});
+
 // Schema for creating user model
 const Users = mongoose.model("Users", {
   serialNumber: {
@@ -72,10 +120,6 @@ const Users = mongoose.model("Users", {
   },
   name: {
     type: String,
-  },
-  phoneNumber: {
-    type: Number,
-    unique: true,
   },
   guideId: {
     type: String,
@@ -105,6 +149,11 @@ const Users = mongoose.model("Users", {
   pincode: {
     type: Number,
   },
+  total_pv: {
+    type: Number,
+    default: 0,
+  },
+  addresses: [Address],
 });
 
 // Schema for creating Product
@@ -132,7 +181,7 @@ const Product = mongoose.model("Product", {
     type: Number,
   },
   purchase_value: {
-    type: Number
+    type: Number,
   },
   date: {
     type: Date,
@@ -190,32 +239,35 @@ app.post("/signup", async (req, res) => {
       errors: "Existing user found with this Phone number",
     });
   }
-  
+
   let check2 = await Users.findOne({ smId: req.body.guideId });
-  if(!check2) {
+  if (!check2) {
     return res.status(400).json({
       success: success,
-      errors: "Guide ID is invalid"
+      errors: "Guide ID is invalid",
     });
   }
 
   // Generating new serial number
   let newSerialNumber = 0;
 
-  if (await Users.find().countDocuments() > 0) {
+  if ((await Users.find().countDocuments()) > 0) {
     let lastSn;
-    await Users.findOne().sort({ serialNumber: -1 }).limit(1).then((latestEntry) => {
-      if (latestEntry) {
-        // console.log('latest:', latestEntry);
-        lastSn = latestEntry.serialNumber;
-        console.log('Value:', lastSn);
-      } else {
-        console.log('No documents found');
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-    });    
+    await Users.findOne()
+      .sort({ serialNumber: -1 })
+      .limit(1)
+      .then((latestEntry) => {
+        if (latestEntry) {
+          // console.log('latest:', latestEntry);
+          lastSn = latestEntry.serialNumber;
+          console.log("Value:", lastSn);
+        } else {
+          console.log("No documents found");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
     newSerialNumber = 1 + lastSn;
   }
 
@@ -237,10 +289,14 @@ app.post("/signup", async (req, res) => {
     phoneNumber: req.body.phoneNumber,
     email: req.body.email,
     password: req.body.password,
-    state: req.body.state,
-    city: req.body.city,
-    address: req.body.address,
-    pincode: req.body.pincode,
+    addresses: [
+      {
+        state: req.body.state,
+        city: req.body.city,
+        address: req.body.address,
+        pincode: req.body.pincode,
+      },
+    ],
     cartData: cart,
   });
 
@@ -253,7 +309,7 @@ app.post("/signup", async (req, res) => {
 
   const token = jwt.sign(data, "secret_ecom");
   success = true;
-  res.json({ success, token , newSmId});
+  res.json({ success, token, newSmId });
 });
 
 app.get("/allproducts", async (req, res) => {
@@ -285,7 +341,23 @@ app.post("/addtocart", fetchuser, async (req, res) => {
     { _id: req.user.id },
     { cartData: userData.cartData }
   );
-  res.send("Added");
+  res.send({ success: true });
+});
+
+// Endpoint to update all items to cart on login
+app.post("/addalltocart", fetchuser, async (req, res) => {
+  console.log("Add all to cart on login");
+  let userData = await Users.findOne({ _id: req.user.id });
+  Object.keys(req.body.cartItems).forEach((itemId) => {
+    if (req.body.cartItems[itemId] > 0) {
+      userData.cartData[itemId] += req.body.cartItems[itemId];
+    }
+  });
+  await Users.findOneAndUpdate(
+    { _id: req.user.id },
+    { cartData: userData.cartData }
+  );
+  res.send({ success: true });
 });
 
 //Create an endpoint for saving the product in cart
@@ -299,7 +371,7 @@ app.post("/removefromcart", fetchuser, async (req, res) => {
     { _id: req.user.id },
     { cartData: userData.cartData }
   );
-  res.send("Removed");
+  res.send({ success: true });
 });
 
 //Create an endpoint for saving the product in cart
@@ -307,6 +379,24 @@ app.post("/getcart", fetchuser, async (req, res) => {
   console.log("Get Cart");
   let userData = await Users.findOne({ _id: req.user.id });
   res.json(userData.cartData);
+});
+
+app.post("/getuser", fetchuser, async (req, res) => {
+  console.log("Get User");
+  let userData = await Users.findOne(
+    { _id: req.user.id },
+    {
+      _id: 0,
+      smId: 1,
+      name: 1,
+      phoneNumber: 1,
+      addresses: 1,
+      guideId: 1,
+      email: 1,
+      total_pv: 1,
+    }
+  );
+  res.json(userData);
 });
 
 app.post("/addproduct", async (req, res) => {
@@ -326,7 +416,7 @@ app.post("/addproduct", async (req, res) => {
     category: req.body.category,
     market_retail_price: req.body.retail_price,
     shoora_price: req.body.shoora_price,
-    purchase_value: req.body.purchase_value
+    purchase_value: req.body.purchase_value,
   });
   console.log(product);
   await product.save();
@@ -343,4 +433,51 @@ app.post("/removeproduct", async (req, res) => {
 app.listen(process.env.PORT || port, (error) => {
   if (!error) console.log("Server Running on port " + port);
   else console.log("Error : ", error);
+});
+
+app.post("/placeOrder", async (req, res) => {
+  let userData = await Users.findOne({ _id: req.user.id });
+  orderId = uuidv4();
+  const order = new Order({
+    orderId: orderId,
+    orderItems: req.body.orderItems,
+    smId: userData.smId,
+    orderValue: req.body.orderValue,
+    orderPurchaseValue: req.body.orderPurchaseValue,
+    state: req.body.state,
+    city: req.body.city,
+    deliveryAddress: req.body.address,
+    pincode: req.body.pincode,
+  });
+  await product.save();
+  console.log("Order placed successfully!");
+  res.json({ success: true, orderId: orderId });
+});
+
+app.post("/addaddress", async (req, res) => {
+  Users.findOneAndUpdate(
+    { _id: req.user.id },
+    {
+      $push: {
+        addresses: {
+          address: req.user.address,
+          city: req.user.city,
+          state: req.user.state,
+          pincode: req.user.pincode,
+        },
+      },
+    }
+  );
+  res.send({ success: true });
+});
+
+app.post("/getdirectjoinees", async (req, res) => {
+  let directJoinees;
+  try {
+    directJoinees = await Users.find({ guideId: req.body.user.smId }, { _id: 0, smId: 1, name: 1, guideId: 1 });
+  } catch (e) {
+    console.log("Unable to get direct joinees: ", e);
+    res.send({successful: false})
+  }
+  res.send({directJoinees}) ;
 });

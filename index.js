@@ -81,7 +81,7 @@ const Address = new Schema({
 // Schema for order
 const Orders = mongoose.model("orders", {
   orderId: {
-    type: Number,
+    type: String,
     unique: true,
   },
   orderItems: {
@@ -436,20 +436,17 @@ app.listen(process.env.PORT || port, (error) => {
 });
 
 app.post("/placeOrder", async (req, res) => {
-  let userData = await Users.findOne({ _id: req.user.id });
-  orderId = uuidv4();
-  const order = new Order({
+  // let userData = await Users.findOne({ smId: req.body.smId });
+  let orderId = uuidv4();
+  const order = new Orders({
     orderId: orderId,
     orderItems: req.body.orderItems,
-    smId: userData.smId,
+    smId: req.body.smId,
     orderValue: req.body.orderValue,
     orderPurchaseValue: req.body.orderPurchaseValue,
-    state: req.body.state,
-    city: req.body.city,
-    deliveryAddress: req.body.address,
-    pincode: req.body.pincode,
+    address: req.body.address
   });
-  await product.save();
+  await order.save();
   console.log("Order placed successfully!");
   res.json({ success: true, orderId: orderId });
 });
@@ -474,10 +471,18 @@ app.post("/addaddress", async (req, res) => {
 app.post("/getdirectjoinees", async (req, res) => {
   let directJoinees;
   try {
-    directJoinees = await Users.find({ guideId: req.body.user.smId }, { _id: 0, smId: 1, name: 1, guideId: 1 });
+    directJoinees = await Users.find(
+      { guideId: req.body.user.smId },
+      { _id: 0, smId: 1, name: 1, guideId: 1 }
+    );
   } catch (e) {
     console.log("Unable to get direct joinees: ", e);
-    res.send({successful: false})
+    res.send({ successful: false });
   }
-  res.send({directJoinees}) ;
+  res.send({ directJoinees });
 });
+
+app.post("/getorders", async (req, res) => {
+  const orders = await Orders.find({smId: req.body.smId});
+  res.send({orders: orders});
+})

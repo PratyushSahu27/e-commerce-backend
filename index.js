@@ -127,6 +127,10 @@ const Users = mongoose.model("Users", {
   email: {
     type: String,
   },
+  phoneNumber: {
+    type: Number,
+    unique: true,
+  },
   password: {
     type: String,
   },
@@ -154,6 +158,10 @@ const Users = mongoose.model("Users", {
     default: 0,
   },
   addresses: [Address],
+  isAdmin:{
+    type: Boolean,
+    default: false
+  }
 });
 
 // Schema for creating Product
@@ -214,6 +222,45 @@ app.post("/login", async (req, res) => {
       console.log(user.id);
       const token = jwt.sign(data, "secret_ecom");
       res.json({ success, token });
+    } else {
+      return res.status(400).json({
+        success: success,
+        errors: "Invalid password. Please try again.",
+      });
+    }
+  } else {
+    return res.status(400).json({
+      success: success,
+      errors: "User not found. Please try with valid SM ID.",
+    });
+  }
+});
+
+//Create an endpoint at ip/login for login the user and giving auth-token
+app.post("/adminlogin", async (req, res) => {
+  console.log("Admin Login");
+  let success = false;
+  let user = await Users.findOne({ smId: req.body.smId });
+  if (user) {
+    const passCompare = req.body.password === user.password;
+    if (passCompare) {
+      
+      if (user.isAdmin && user.isAdmin === true) {
+        const data = {
+          user: {
+            id: user.id,
+          },
+        };
+        success = true;
+        console.log(user.id);
+        const token = jwt.sign(data, "secret_ecom");
+        res.json({ success, token });
+      } else {
+        return res.status(400).json({
+          success: success,
+          errors: "You do not have admin access",
+        });
+      }
     } else {
       return res.status(400).json({
         success: success,

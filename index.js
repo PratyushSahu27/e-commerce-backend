@@ -6,15 +6,26 @@ import multer from "multer";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
-import { smIdGenerator } from "./files/utils.js";
+import { smIdGenerator } from "./app/utils/Utils.js";
 import { v4 as uuidv4 } from "uuid";
 import { type } from "os";
+import PaymentRouter from "./app/routes/PaymentRouter.js";
+import fs from "fs";
+import https from "https";
+
+app.use("/api", PaymentRouter);
+
+const options = {
+  key: fs.readFileSync("/etc/letsencrypt/live/your_domain/privkey.pem"),
+  cert: fs.readFileSync("/etc/letsencrypt/live/your_domain/fullchain.pem"),
+};
 
 dotenv.config();
 const port = process.env.PORT;
 const MONGODB_URL = process.env.DB_URL;
 
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
 // Database Connection With MongoDB
@@ -158,7 +169,7 @@ const Users = mongoose.model("Users", {
     default: 0,
   },
   addresses: [Address],
-  isAdmin:{
+  isAdmin: {
     type: Boolean,
     default: false
   }
@@ -244,7 +255,6 @@ app.post("/adminlogin", async (req, res) => {
   if (user) {
     const passCompare = req.body.password === user.password;
     if (passCompare) {
-      
       if (user.isAdmin && user.isAdmin === true) {
         const data = {
           user: {
@@ -477,7 +487,7 @@ app.post("/removeproduct", async (req, res) => {
   res.json({ success: true, name: req.body.name });
 });
 
-app.listen(process.env.PORT || port, (error) => {
+https.createServer(options, app).listen(process.env.PORT || port, (error) => {
   if (!error) console.log("Server Running on port " + port);
   else console.log("Error : ", error);
 });
@@ -530,6 +540,6 @@ app.post("/getdirectjoinees", async (req, res) => {
 });
 
 app.post("/getorders", async (req, res) => {
-  const orders = await Orders.find({smId: req.body.smId});
-  res.send({orders: orders});
-})
+  const orders = await Orders.find({ smId: req.body.smId });
+  res.send({ orders: orders });
+});

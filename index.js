@@ -49,7 +49,7 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage: storage });
-app.post("/upload", upload.single("product"), (req, res) => {
+app.post("/api/upload", upload.single("product"), (req, res) => {
   res.json({
     success: 1,
     image_url: `http://localhost:8080/images/${req.file.filename}`,
@@ -171,8 +171,8 @@ const Users = mongoose.model("Users", {
   addresses: [Address],
   isAdmin: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
 
 // Schema for creating Product
@@ -217,7 +217,7 @@ app.get("/", (req, res) => {
 });
 
 //Create an endpoint at ip/login for login the user and giving auth-token
-app.post("/login", async (req, res) => {
+app.post("/api/login", async (req, res) => {
   console.log("Login");
   let success = false;
   let user = await Users.findOne({ smId: req.body.smId });
@@ -248,7 +248,7 @@ app.post("/login", async (req, res) => {
 });
 
 //Create an endpoint at ip/login for login the user and giving auth-token
-app.post("/adminlogin", async (req, res) => {
+app.post("/api/adminlogin", async (req, res) => {
   console.log("Admin Login");
   let success = false;
   let user = await Users.findOne({ smId: req.body.smId });
@@ -286,7 +286,7 @@ app.post("/adminlogin", async (req, res) => {
 });
 
 //Create an endpoint at ip/auth for registering the user in data base & sending token
-app.post("/signup", async (req, res) => {
+app.post("/api/signup", async (req, res) => {
   console.log("Sign Up");
   let success = false;
   let check = await Users.findOne({ phoneNumber: req.body.phoneNumber });
@@ -390,7 +390,7 @@ app.get("/popularinwomen", async (req, res) => {
 });
 
 //Create an endpoint for saving the product in cart
-app.post("/addtocart", fetchuser, async (req, res) => {
+app.post("/api/addtocart", fetchuser, async (req, res) => {
   console.log("Add Cart");
   let userData = await Users.findOne({ _id: req.user.id });
   userData.cartData[req.body.itemId] += 1;
@@ -402,7 +402,7 @@ app.post("/addtocart", fetchuser, async (req, res) => {
 });
 
 // Endpoint to update all items to cart on login
-app.post("/addalltocart", fetchuser, async (req, res) => {
+app.post("/api/addalltocart", fetchuser, async (req, res) => {
   console.log("Add all to cart on login");
   let userData = await Users.findOne({ _id: req.user.id });
   Object.keys(req.body.cartItems).forEach((itemId) => {
@@ -417,8 +417,19 @@ app.post("/addalltocart", fetchuser, async (req, res) => {
   res.send({ success: true });
 });
 
+// Endpoint to set cart
+app.post("/api/setcart", async (req, res) => {
+  console.log("setting cart");
+  const user = await Users.findOneAndUpdate(
+    { smId: req.body.smId },
+    { cartData: req.body.cartItems }
+  );
+  console.log(user);
+  res.send({ success: true });
+});
+
 //Create an endpoint for saving the product in cart
-app.post("/removefromcart", fetchuser, async (req, res) => {
+app.post("/api/removefromcart", fetchuser, async (req, res) => {
   console.log("Remove Cart");
   let userData = await Users.findOne({ _id: req.user.id });
   if (userData.cartData[req.body.itemId] != 0) {
@@ -432,13 +443,13 @@ app.post("/removefromcart", fetchuser, async (req, res) => {
 });
 
 //Create an endpoint for saving the product in cart
-app.post("/getcart", fetchuser, async (req, res) => {
+app.post("/api/getcart", fetchuser, async (req, res) => {
   console.log("Get Cart");
   let userData = await Users.findOne({ _id: req.user.id });
   res.json(userData.cartData);
 });
 
-app.post("/getuser", fetchuser, async (req, res) => {
+app.post("/api/getuser", fetchuser, async (req, res) => {
   console.log("Get User");
   let userData = await Users.findOne(
     { _id: req.user.id },
@@ -456,7 +467,7 @@ app.post("/getuser", fetchuser, async (req, res) => {
   res.json(userData);
 });
 
-app.post("/addproduct", async (req, res) => {
+app.post("/api/addproduct", async (req, res) => {
   let products = await Product.find({});
   let id;
   if (products.length > 0) {
@@ -481,7 +492,7 @@ app.post("/addproduct", async (req, res) => {
   res.json({ success: true, name: req.body.name });
 });
 
-app.post("/removeproduct", async (req, res) => {
+app.post("/api/removeproduct", async (req, res) => {
   const product = await Product.findOneAndDelete({ id: req.body.id });
   console.log("Removed");
   res.json({ success: true, name: req.body.name });
@@ -492,8 +503,7 @@ https.createServer(options, app).listen(process.env.PORT || port, (error) => {
   else console.log("Error : ", error);
 });
 
-app.post("/placeOrder", async (req, res) => {
-  // let userData = await Users.findOne({ smId: req.body.smId });
+app.post("/api/placeOrder", async (req, res) => {
   let orderId = uuidv4();
   const order = new Orders({
     orderId: orderId,
@@ -501,14 +511,19 @@ app.post("/placeOrder", async (req, res) => {
     smId: req.body.smId,
     orderValue: req.body.orderValue,
     orderPurchaseValue: req.body.orderPurchaseValue,
-    address: req.body.address
+    address: req.body.address,
   });
+
+  await Users.findOneAndUpdate(
+    { smId: req.body.smId },
+    { $inc: { total_pv: req.body.orderPurchaseValue } }
+  );
   await order.save();
   console.log("Order placed successfully!");
   res.json({ success: true, orderId: orderId });
 });
 
-app.post("/addaddress", async (req, res) => {
+app.post("/api/addaddress", async (req, res) => {
   Users.findOneAndUpdate(
     { _id: req.user.id },
     {
@@ -525,7 +540,7 @@ app.post("/addaddress", async (req, res) => {
   res.send({ success: true });
 });
 
-app.post("/getdirectjoinees", async (req, res) => {
+app.post("/api/getdirectjoinees", async (req, res) => {
   let directJoinees;
   try {
     directJoinees = await Users.find(
@@ -539,7 +554,7 @@ app.post("/getdirectjoinees", async (req, res) => {
   res.send({ directJoinees });
 });
 
-app.post("/getorders", async (req, res) => {
+app.post("/api/getorders", async (req, res) => {
   const orders = await Orders.find({ smId: req.body.smId });
   res.send({ orders: orders });
 });

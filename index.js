@@ -6,7 +6,7 @@ import multer from "multer";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
-import { API_BASE_ROUTE, smIdGenerator } from "./app/utils/Utils.js";
+import { API_BASE_ROUTE, DOMAIN, smIdGenerator } from "./app/utils/Utils.js";
 import { v4 as uuidv4 } from "uuid";
 import { type } from "os";
 // import PaymentRouter from "./app/routes/PaymentRouter.js";
@@ -14,8 +14,8 @@ import fs from "fs";
 import https from "https";
 
 const options = {
-  key: fs.readFileSync("/etc/letsencrypt/live/your_domain/privkey.pem"),
-  cert: fs.readFileSync("/etc/letsencrypt/live/your_domain/fullchain.pem"),
+  key: fs.readFileSync(`/etc/letsencrypt/live/${DOMAIN}/privkey.pem`),
+  cert: fs.readFileSync(`/etc/letsencrypt/live/${DOMAIN}/fullchain.pem`),
 };
 
 dotenv.config();

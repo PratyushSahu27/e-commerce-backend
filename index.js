@@ -13,8 +13,6 @@ import PaymentRouter from "./app/routes/PaymentRouter.js";
 import fs from "fs";
 import https from "https";
 
-app.use("/api", PaymentRouter);
-
 const options = {
   key: fs.readFileSync("/etc/letsencrypt/live/your_domain/privkey.pem"),
   cert: fs.readFileSync("/etc/letsencrypt/live/your_domain/fullchain.pem"),
@@ -27,11 +25,14 @@ const MONGODB_URL = process.env.DB_URL;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
+app.use("/images", express.static("upload/images"));
+
+// Routes
+// app.use("/api", PaymentRouter);
 
 // Database Connection With MongoDB
 try {
   mongoose.connect(MONGODB_URL);
-
   console.log("Connected to MongoDB");
 } catch (e) {
   console.log("Error in connecting to MongoDB - ", e);
@@ -52,10 +53,9 @@ const upload = multer({ storage: storage });
 app.post("/api/upload", upload.single("product"), (req, res) => {
   res.json({
     success: 1,
-    image_url: `http://localhost:8080/images/${req.file.filename}`,
+    image_url: `https://shooramall.com/api/images/${req.file.filename}`,
   });
 });
-app.use("/images", express.static("upload/images"));
 
 // MiddleWare to fetch user from database
 const fetchuser = async (req, res, next) => {

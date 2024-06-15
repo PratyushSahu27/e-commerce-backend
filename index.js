@@ -6,7 +6,7 @@ import multer from "multer";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
-import { API_BASE_ROUTE, DOMAIN, smIdGenerator } from "./app/utils/Utils.js";
+import { API_BASE_ROUTE, smIdGenerator } from "./app/utils/Utils.js";
 import { v4 as uuidv4 } from "uuid";
 import { type } from "os";
 // import PaymentRouter from "./app/routes/PaymentRouter.js";
@@ -14,8 +14,8 @@ import fs from "fs";
 import https from "https";
 
 const options = {
-  key: fs.readFileSync(`/etc/letsencrypt/live/${DOMAIN}/privkey.pem`),
-  cert: fs.readFileSync(`/etc/letsencrypt/live/${DOMAIN}/fullchain.pem`),
+  key: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/privkey.pem"),
+  cert: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/fullchain.pem"),
 };
 
 dotenv.config();
@@ -25,7 +25,7 @@ const MONGODB_URL = process.env.DB_URL;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
-app.use("/images", express.static("upload/images"));
+app.use(`${API_BASE_ROUTE}/images`, express.static("upload/images"));
 
 // Routes
 // app.use("/api", PaymentRouter);
@@ -212,7 +212,7 @@ const Product = mongoose.model("Product", {
   },
 });
 
-app.get("/", (req, res) => {
+app.get("/api/", (req, res) => {
   res.send("Root");
 });
 
@@ -369,20 +369,20 @@ app.post("/api/signup", async (req, res) => {
   res.json({ success, token, newSmId });
 });
 
-app.get("/allproducts", async (req, res) => {
+app.get("/api/allproducts", async (req, res) => {
   let products = await Product.find({});
   console.log("All Products");
   res.send(products);
 });
 
-app.get("/newcollections", async (req, res) => {
+app.get("/api/newcollections", async (req, res) => {
   let products = await Product.find({});
   let arr = products.slice(1).slice(-8);
   console.log("New Collections");
   res.send(arr);
 });
 
-app.get("/popularinwomen", async (req, res) => {
+app.get("/api/popularinwomen", async (req, res) => {
   let products = await Product.find({});
   // let arr = products.splice(0, 4);
   console.log("Popular In Women");

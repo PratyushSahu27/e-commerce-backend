@@ -56,3 +56,9 @@ const makeFiveDigitNumber = (num) => {
 export const API_BASE_ROUTE = "/api";
 
 export const DOMAIN = "shooramall.com";
+
+export function getPriceAfterTax(tax, price) {
+  const number1 = (price * (100 - tax)) / 100;
+  const number2 = (price * tax) / 100;
+  return { price: number1, tax: number2 };
+}

@@ -210,6 +210,15 @@ const Product = mongoose.model("Product", {
     type: Boolean,
     default: true,
   },
+  tax_rate: {
+    type: Number,
+  },
+  quantity_value: {
+    type: Number,
+  },
+  quantity_unit: {
+    type: String,
+  },
 });
 
 app.get("/api/", (req, res) => {
@@ -485,6 +494,10 @@ app.post("/api/addproduct", async (req, res) => {
     market_retail_price: req.body.retail_price,
     shoora_price: req.body.shoora_price,
     purchase_value: req.body.purchase_value,
+    available: req.body.available,
+    tax_rate: req.body.tax_rate,
+    quantity_value: req.body.quantity_value,
+    quantity_unit: req.body.quantity_unit,
   });
   console.log(product);
   await product.save();

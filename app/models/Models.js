@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 // Schema for order
 const Order = mongoose.model("orders", {
   orderId: {
@@ -34,7 +36,7 @@ const Order = mongoose.model("orders", {
   },
 });
 
-const Address = new Schema({
+export const Address = new Schema({
   state: {
     type: String,
   },
@@ -45,6 +47,10 @@ const Address = new Schema({
     type: String,
     required: true,
   },
+  landmark: {
+    type: String,
+    required: true,
+  },
   pincode: {
     type: Number,
     required: true,
@@ -52,7 +58,7 @@ const Address = new Schema({
 });
 
 // Schema for creating user model
-const Users = mongoose.model("Users", {
+const Users = new mongoose.Schema({
   serialNumber: {
     type: Number,
     unique: true,
@@ -139,7 +145,7 @@ const Product = mongoose.model("Product", {
   },
 });
 
-const PRODUCT_SCHEMA = mongoose.Schema({
+export const PRODUCT_SCHEMA = new mongoose.Schema({
   id: {
     type: Number,
     required: true,
@@ -179,4 +185,58 @@ const PRODUCT_SCHEMA = mongoose.Schema({
     type: Boolean,
     required: true,
   },
+});
+
+export const BRANCH_SCHEMA = new mongoose.Schema({
+  branch_id: {
+    type: String,
+    unique: true,
+    required: true,
+  },
+  branch_name: {
+    type: String,
+    unique: true,
+    required: true,
+  },
+  address: {
+    type: Address,
+    required: true,
+  },
+  gst_no: {
+    type: Number,
+    required: true,
+  },
+  fssai_no: {
+    type: Number,
+    required: true,
+  },
+});
+
+export const ORDER_SCHEMA = new mongoose.Schema({
+  orderId: {
+    type: String,
+    unique: true,
+  },
+  orderItems: {
+    type: Array,
+  },
+  smId: {
+    type: String,
+  },
+  orderValue: {
+    type: Number,
+  },
+  orderPurchaseValue: {
+    type: Number,
+  },
+  orderDate: {
+    type: Date,
+    default: Date.now,
+  },
+  address: Address,
+  completed: {
+    type: Boolean,
+    default: false,
+  },
+  alternateContactNumber: Number,
 });

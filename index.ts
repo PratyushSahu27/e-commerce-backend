@@ -8,14 +8,18 @@ import cors from "cors";
 import dotenv from "dotenv";
 import { API_BASE_ROUTE, smIdGenerator } from "./app/utils/Utils.js";
 import { v4 as uuidv4 } from "uuid";
-import { type } from "os";
-// import PaymentRouter from "./app/routes/PaymentRouter.js";
+import PaymentRouter from "./app/routes/PaymentRouter.js";
+import InvoiceRouter from "./app/routes/InvoiceRouter.js";
+import ItemsRouter from "./app/routes/ItemsRouter.js";
 import fs from "fs";
 import https from "https";
+import { Users, Product, Orders } from "./app/DB/models/Models.js";
+
+import { Request, Response } from "express";
 
 const options = {
-  key: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/privkey.pem"),
-  cert: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/fullchain.pem"),
+  // key: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/privkey.pem"),
+  // cert: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/fullchain.pem"),
 };
 
 dotenv.config();
@@ -28,7 +32,9 @@ app.use(cors());
 app.use(`${API_BASE_ROUTE}/images`, express.static("upload/images"));
 
 // Routes
-// app.use("/api", PaymentRouter);
+app.use(API_BASE_ROUTE, PaymentRouter);
+app.use(API_BASE_ROUTE, InvoiceRouter);
+app.use(API_BASE_ROUTE, ItemsRouter);
 
 // Database Connection With MongoDB
 try {
@@ -50,183 +56,38 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage: storage });
-app.post("/api/upload", upload.single("product"), (req, res) => {
-  res.json({
-    success: 1,
-    image_url: `https://shooramall.com/api/images/${req.file.filename}`,
-  });
-});
+app.post(
+  "/api/upload",
+  upload.single("product"),
+  (req: Request, res: Response) => {
+    res.json({
+      success: 1,
+      image_url: `https://shooramall.com/api/images/${req.file.filename}`,
+    });
+  }
+);
 
 // MiddleWare to fetch user from database
-const fetchuser = async (req, res, next) => {
+const fetchuser = async (req: Request, res: Response, next) => {
   const token = req.header("auth-token");
   if (!token) {
     res.status(401).send({ errors: "Please authenticate using a valid token" });
   }
   try {
     const data = jwt.verify(token, "secret_ecom");
-    req.user = data.user;
+    req.body.user = data.user;
     next();
   } catch (error) {
     res.status(401).send({ errors: "Please authenticate using a valid token" });
   }
 };
 
-const Address = new Schema({
-  state: {
-    type: String,
-  },
-  city: {
-    type: String,
-  },
-  address: {
-    type: String,
-    required: true,
-  },
-  pincode: {
-    type: Number,
-    required: true,
-  },
-});
-
-// Schema for order
-const Orders = mongoose.model("orders", {
-  orderId: {
-    type: String,
-    unique: true,
-  },
-  orderItems: {
-    type: Array,
-  },
-  smId: {
-    type: String,
-  },
-  orderValue: {
-    type: Number,
-  },
-  orderPurchaseValue: {
-    type: Number,
-  },
-  orderDate: {
-    type: Date,
-    default: Date.now,
-  },
-  address: Address,
-  completed: {
-    type: Boolean,
-    default: false,
-  },
-  alternateContactNumber: Number,
-});
-
-// Schema for creating user model
-const Users = mongoose.model("Users", {
-  serialNumber: {
-    type: Number,
-    unique: true,
-  },
-  smId: {
-    type: String,
-    unique: true,
-  },
-  name: {
-    type: String,
-  },
-  guideId: {
-    type: String,
-  },
-  email: {
-    type: String,
-  },
-  phoneNumber: {
-    type: Number,
-    unique: true,
-  },
-  password: {
-    type: String,
-  },
-  cartData: {
-    type: Object,
-  },
-  date: {
-    type: Date,
-    default: Date.now,
-  },
-  state: {
-    type: String,
-  },
-  city: {
-    type: String,
-  },
-  address: {
-    type: String,
-  },
-  pincode: {
-    type: Number,
-  },
-  total_pv: {
-    type: Number,
-    default: 0,
-  },
-  addresses: [Address],
-  isAdmin: {
-    type: Boolean,
-    default: false,
-  },
-});
-
-// Schema for creating Product
-const Product = mongoose.model("Product", {
-  id: {
-    type: Number,
-    required: true,
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  image: {
-    type: String,
-    required: true,
-  },
-  category: {
-    type: String,
-    required: true,
-  },
-  market_retail_price: {
-    type: Number,
-  },
-  shoora_price: {
-    type: Number,
-  },
-  purchase_value: {
-    type: Number,
-  },
-  date: {
-    type: Date,
-    default: Date.now,
-  },
-  available: {
-    type: Boolean,
-    default: true,
-  },
-  tax_rate: {
-    type: Number,
-  },
-  quantity_value: {
-    type: Number,
-  },
-  quantity_unit: {
-    type: String,
-  },
-});
-
-app.get("/api/", (req, res) => {
+app.get("/api/", (req: Request, res: Response) => {
   res.send("Root");
 });
 
 //Create an endpoint at ip/login for login the user and giving auth-token
-app.post("/api/login", async (req, res) => {
+app.post("/api/login", async (req: Request, res: Response) => {
   console.log("Login");
   let success = false;
   let user = await Users.findOne({ smId: req.body.smId });
@@ -257,7 +118,7 @@ app.post("/api/login", async (req, res) => {
 });
 
 //Create an endpoint at ip/login for login the user and giving auth-token
-app.post("/api/adminlogin", async (req, res) => {
+app.post("/api/adminlogin", async (req: Request, res: Response) => {
   console.log("Admin Login");
   let success = false;
   let user = await Users.findOne({ smId: req.body.smId });
@@ -295,7 +156,7 @@ app.post("/api/adminlogin", async (req, res) => {
 });
 
 //Create an endpoint at ip/auth for registering the user in data base & sending token
-app.post("/api/signup", async (req, res) => {
+app.post("/api/signup", async (req: Request, res: Response) => {
   console.log("Sign Up");
   let success = false;
   let check = await Users.findOne({ phoneNumber: req.body.phoneNumber });
@@ -378,20 +239,20 @@ app.post("/api/signup", async (req, res) => {
   res.json({ success, token, newSmId });
 });
 
-app.get("/api/allproducts", async (req, res) => {
+app.get("/api/allproducts", async (req: Request, res: Response) => {
   let products = await Product.find({});
   console.log("All Products");
   res.send(products);
 });
 
-app.get("/api/newcollections", async (req, res) => {
+app.get("/api/newcollections", async (req: Request, res: Response) => {
   let products = await Product.find({});
   let arr = products.slice(1).slice(-8);
   console.log("New Collections");
   res.send(arr);
 });
 
-app.get("/api/popularinwomen", async (req, res) => {
+app.get("/api/popularinwomen", async (req: Request, res: Response) => {
   let products = await Product.find({});
   // let arr = products.splice(0, 4);
   console.log("Popular In Women");
@@ -399,35 +260,39 @@ app.get("/api/popularinwomen", async (req, res) => {
 });
 
 //Create an endpoint for saving the product in cart
-app.post("/api/addtocart", fetchuser, async (req, res) => {
+app.post("/api/addtocart", fetchuser, async (req: Request, res: Response) => {
   console.log("Add Cart");
-  let userData = await Users.findOne({ _id: req.user.id });
+  let userData = await Users.findOne({ _id: req.body.user.id });
   userData.cartData[req.body.itemId] += 1;
   await Users.findOneAndUpdate(
-    { _id: req.user.id },
+    { _id: req.body.user.id },
     { cartData: userData.cartData }
   );
   res.send({ success: true });
 });
 
 // Endpoint to update all items to cart on login
-app.post("/api/addalltocart", fetchuser, async (req, res) => {
-  console.log("Add all to cart on login");
-  let userData = await Users.findOne({ _id: req.user.id });
-  Object.keys(req.body.cartItems).forEach((itemId) => {
-    if (req.body.cartItems[itemId] > 0) {
-      userData.cartData[itemId] += req.body.cartItems[itemId];
-    }
-  });
-  await Users.findOneAndUpdate(
-    { _id: req.user.id },
-    { cartData: userData.cartData }
-  );
-  res.send({ success: true });
-});
+app.post(
+  "/api/addalltocart",
+  fetchuser,
+  async (req: Request, res: Response) => {
+    console.log("Add all to cart on login");
+    let userData = await Users.findOne({ _id: req.body.user.id });
+    Object.keys(req.body.cartItems).forEach((itemId) => {
+      if (req.body.cartItems[itemId] > 0) {
+        userData.cartData[itemId] += req.body.cartItems[itemId];
+      }
+    });
+    await Users.findOneAndUpdate(
+      { _id: req.body.user.id },
+      { cartData: userData.cartData }
+    );
+    res.send({ success: true });
+  }
+);
 
 // Endpoint to set cart
-app.post("/api/setcart", async (req, res) => {
+app.post("/api/setcart", async (req: Request, res: Response) => {
   console.log("setting cart");
   const user = await Users.findOneAndUpdate(
     { smId: req.body.smId },
@@ -438,30 +303,34 @@ app.post("/api/setcart", async (req, res) => {
 });
 
 //Create an endpoint for saving the product in cart
-app.post("/api/removefromcart", fetchuser, async (req, res) => {
-  console.log("Remove Cart");
-  let userData = await Users.findOne({ _id: req.user.id });
-  if (userData.cartData[req.body.itemId] != 0) {
-    userData.cartData[req.body.itemId] -= 1;
+app.post(
+  "/api/removefromcart",
+  fetchuser,
+  async (req: Request, res: Response) => {
+    console.log("Remove Cart");
+    let userData = await Users.findOne({ _id: req.body.user.id });
+    if (userData.cartData[req.body.itemId] != 0) {
+      userData.cartData[req.body.itemId] -= 1;
+    }
+    await Users.findOneAndUpdate(
+      { _id: req.body.user.id },
+      { cartData: userData.cartData }
+    );
+    res.send({ success: true });
   }
-  await Users.findOneAndUpdate(
-    { _id: req.user.id },
-    { cartData: userData.cartData }
-  );
-  res.send({ success: true });
-});
+);
 
 //Create an endpoint for saving the product in cart
-app.post("/api/getcart", fetchuser, async (req, res) => {
+app.post("/api/getcart", fetchuser, async (req: Request, res: Response) => {
   console.log("Get Cart");
-  let userData = await Users.findOne({ _id: req.user.id });
+  let userData = await Users.findOne({ _id: req.body.user.id });
   res.json(userData.cartData);
 });
 
-app.post("/api/getuser", fetchuser, async (req, res) => {
+app.post("/api/getuser", fetchuser, async (req: Request, res: Response) => {
   console.log("Get User");
   let userData = await Users.findOne(
-    { _id: req.user.id },
+    { _id: req.body.user.id },
     {
       _id: 0,
       smId: 1,
@@ -476,7 +345,7 @@ app.post("/api/getuser", fetchuser, async (req, res) => {
   res.json(userData);
 });
 
-app.post("/api/addproduct", async (req, res) => {
+app.post("/api/addproduct", async (req: Request, res: Response) => {
   let products = await Product.find({});
   let id;
   if (products.length > 0) {
@@ -505,18 +374,17 @@ app.post("/api/addproduct", async (req, res) => {
   res.json({ success: true, name: req.body.name });
 });
 
-app.post("/api/removeproduct", async (req, res) => {
+app.post("/api/removeproduct", async (req: Request, res: Response) => {
   const product = await Product.findOneAndDelete({ id: req.body.id });
   console.log("Removed");
   res.json({ success: true, name: req.body.name });
 });
 
-https.createServer(options, app).listen(process.env.PORT || port, (error) => {
-  if (!error) console.log("Server Running on port " + port);
-  else console.log("Error : ", error);
+app.listen(process.env.PORT || port, () => {
+  console.log("Server Running on port " + port);
 });
 
-app.post("/api/placeOrder", async (req, res) => {
+app.post("/api/placeOrder", async (req: Request, res: Response) => {
   let orderId = uuidv4();
   const order = new Orders({
     orderId: orderId,
@@ -536,16 +404,16 @@ app.post("/api/placeOrder", async (req, res) => {
   res.json({ success: true, orderId: orderId });
 });
 
-app.post("/api/addaddress", async (req, res) => {
+app.post("/api/addaddress", async (req: Request, res: Response) => {
   Users.findOneAndUpdate(
-    { _id: req.user.id },
+    { _id: req.body.user.id },
     {
       $push: {
         addresses: {
-          address: req.user.address,
-          city: req.user.city,
-          state: req.user.state,
-          pincode: req.user.pincode,
+          address: req.body.user.address,
+          city: req.body.user.city,
+          state: req.body.user.state,
+          pincode: req.body.user.pincode,
         },
       },
     }
@@ -553,7 +421,7 @@ app.post("/api/addaddress", async (req, res) => {
   res.send({ success: true });
 });
 
-app.post("/api/getdirectjoinees", async (req, res) => {
+app.post("/api/getdirectjoinees", async (req: Request, res: Response) => {
   let directJoinees;
   try {
     directJoinees = await Users.find(
@@ -567,7 +435,7 @@ app.post("/api/getdirectjoinees", async (req, res) => {
   res.send({ directJoinees });
 });
 
-app.post("/api/getorders", async (req, res) => {
+app.post("/api/getorders", async (req: Request, res: Response) => {
   const orders = await Orders.find({ smId: req.body.smId });
   res.send({ orders: orders });
 });

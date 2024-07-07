@@ -13,18 +13,18 @@ import InvoiceRouter from "./app/routes/InvoiceRouter.js";
 import ItemsRouter from "./app/routes/ItemsRouter.js";
 import fs from "fs";
 import https from "https";
-import { Users, Product, Orders } from "./app/DB/models/Models.js";
+import { Users, Product, Orders, USER_SCHEMA } from "./app/DB/models/Models.js";
 
 import { Request, Response } from "express";
 
 const options = {
-  // key: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/privkey.pem"),
-  // cert: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/fullchain.pem"),
+  key: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/privkey.pem"),
+  cert: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/fullchain.pem"),
 };
 
 dotenv.config();
 const port = process.env.PORT;
-const MONGODB_URL = process.env.DB_URL;
+const MONGODB_URL = process.env.DB_URL as string;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -179,20 +179,19 @@ app.post("/api/signup", async (req: Request, res: Response) => {
   let newSerialNumber = 0;
 
   if ((await Users.find().countDocuments()) > 0) {
-    let lastSn;
+    let lastSn = 0;
     await Users.findOne()
       .sort({ serialNumber: -1 })
       .limit(1)
       .then((latestEntry) => {
         if (latestEntry) {
-          // console.log('latest:', latestEntry);
-          lastSn = latestEntry.serialNumber;
+          lastSn = latestEntry.serialNumber as number;
           console.log("Value:", lastSn);
         } else {
           console.log("No documents found");
         }
       })
-      .catch((err) => {
+      .catch((err: Error) => {
         console.log(err);
       });
     newSerialNumber = 1 + lastSn;
@@ -202,8 +201,8 @@ app.post("/api/signup", async (req: Request, res: Response) => {
   const newSmId = smIdGenerator(req.body.state, newSerialNumber);
 
   // Initializing cart
-  let cart = {};
-  for (let i = 0; i < 300; i++) {
+  let cart: { [key: number]: number } = {};
+  for (let i: number = 0; i < 300; i++) {
     cart[i] = 0;
   }
 
@@ -263,11 +262,13 @@ app.get("/api/popularinwomen", async (req: Request, res: Response) => {
 app.post("/api/addtocart", fetchuser, async (req: Request, res: Response) => {
   console.log("Add Cart");
   let userData = await Users.findOne({ _id: req.body.user.id });
-  userData.cartData[req.body.itemId] += 1;
-  await Users.findOneAndUpdate(
-    { _id: req.body.user.id },
-    { cartData: userData.cartData }
-  );
+  if (userData) {
+    userData.cartData[req.body.itemId] += 1;
+    await Users.findOneAndUpdate(
+      { _id: req.body.user.id },
+      { cartData: userData.cartData }
+    );
+  }
   res.send({ success: true });
 });
 
@@ -278,15 +279,17 @@ app.post(
   async (req: Request, res: Response) => {
     console.log("Add all to cart on login");
     let userData = await Users.findOne({ _id: req.body.user.id });
-    Object.keys(req.body.cartItems).forEach((itemId) => {
-      if (req.body.cartItems[itemId] > 0) {
-        userData.cartData[itemId] += req.body.cartItems[itemId];
-      }
-    });
-    await Users.findOneAndUpdate(
-      { _id: req.body.user.id },
-      { cartData: userData.cartData }
-    );
+    if (userData) {
+      Object.keys(req.body.cartItems).forEach((itemId) => {
+        if (req.body.cartItems[itemId] > 0) {
+          userData.cartData[itemId] += req.body.cartItems[itemId];
+        }
+      });
+      await Users.findOneAndUpdate(
+        { _id: req.body.user.id },
+        { cartData: userData.cartData }
+      );
+    }
     res.send({ success: true });
   }
 );
@@ -309,13 +312,15 @@ app.post(
   async (req: Request, res: Response) => {
     console.log("Remove Cart");
     let userData = await Users.findOne({ _id: req.body.user.id });
-    if (userData.cartData[req.body.itemId] != 0) {
-      userData.cartData[req.body.itemId] -= 1;
+    if (userData) {
+      if (userData.cartData[req.body.itemId] != 0) {
+        userData.cartData[req.body.itemId] -= 1;
+      }
+      await Users.findOneAndUpdate(
+        { _id: req.body.user.id },
+        { cartData: userData.cartData }
+      );
     }
-    await Users.findOneAndUpdate(
-      { _id: req.body.user.id },
-      { cartData: userData.cartData }
-    );
     res.send({ success: true });
   }
 );
@@ -324,7 +329,7 @@ app.post(
 app.post("/api/getcart", fetchuser, async (req: Request, res: Response) => {
   console.log("Get Cart");
   let userData = await Users.findOne({ _id: req.body.user.id });
-  res.json(userData.cartData);
+  res.json(userData ? userData.cartData : userData);
 });
 
 app.post("/api/getuser", fetchuser, async (req: Request, res: Response) => {
@@ -380,7 +385,7 @@ app.post("/api/removeproduct", async (req: Request, res: Response) => {
   res.json({ success: true, name: req.body.name });
 });
 
-app.listen(process.env.PORT || port, () => {
+https.createServer(options, app).listen(process.env.PORT || port, () => {
   console.log("Server Running on port " + port);
 });
 

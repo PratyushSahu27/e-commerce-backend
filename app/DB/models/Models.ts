@@ -146,8 +146,8 @@ export const PRODUCT_SCHEMA = new Schema({
     type: Boolean,
     default: true,
   },
-  taxRate: {
-    type: Boolean,
+  tax_rate: {
+    type: String,
     required: true,
   },
 });

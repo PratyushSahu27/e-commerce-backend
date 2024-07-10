@@ -150,6 +150,14 @@ export const PRODUCT_SCHEMA = new Schema({
     type: String,
     required: true,
   },
+  quantity_value: {
+    type: Number,
+    required: true,
+  },
+  quantity_unit: {
+    type: String,
+    required: true,
+  },
 });
 
 // Schema for branch model

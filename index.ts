@@ -14,6 +14,7 @@ import ItemsRouter from "./app/routes/ItemsRouter.js";
 import fs from "fs";
 import https from "https";
 import { Users, Product, Orders, USER_SCHEMA } from "./app/DB/models/Models.js";
+import BranchRouter from "./app/routes/BranchRouter.js";
 
 import { Request, Response } from "express";
 
@@ -35,6 +36,7 @@ app.use(`${API_BASE_ROUTE}/images`, express.static("upload/images"));
 app.use(API_BASE_ROUTE, PaymentRouter);
 app.use(API_BASE_ROUTE, InvoiceRouter);
 app.use(API_BASE_ROUTE, ItemsRouter);
+app.use(API_BASE_ROUTE, BranchRouter);
 
 // Database Connection With MongoDB
 try {

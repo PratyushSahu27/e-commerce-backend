@@ -162,6 +162,10 @@ export const PRODUCT_SCHEMA = new Schema({
 
 // Schema for branch model
 export const BRANCH_SCHEMA = new Schema({
+  serialNumber: {
+    type: Number,
+    unique: true,
+  },
   branch_id: {
     type: String,
     unique: true,
@@ -184,9 +188,13 @@ export const BRANCH_SCHEMA = new Schema({
     type: Number,
     required: true,
   },
+  login_password: {
+    type: String,
+    required: true,
+  },
 });
 
-// Schema for order
+// Order model
 export const Orders = mongoose.model("orders", ORDER_SCHEMA);
 
 // Users model
@@ -194,3 +202,6 @@ export const Users = mongoose.model("Users", USER_SCHEMA);
 
 // Product model
 export const Product = mongoose.model("Product", PRODUCT_SCHEMA);
+
+// Branch model
+export const Branch = mongoose.model("Branch", BRANCH_SCHEMA);

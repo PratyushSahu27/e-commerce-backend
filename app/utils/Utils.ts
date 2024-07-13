@@ -1,4 +1,4 @@
-const stateMap = {
+const stateMap: Record<string, string> = {
   "Andhra Pradesh": "01",
   "Arunachal Pradesh": "02",
   Assam: "03",
@@ -35,16 +35,16 @@ const stateMap = {
   Puducherry: "34",
 };
 
-export const smIdGenerator = (state, sn) => {
-  return `SM${stateMap[state]}${makeFiveDigitNumber(sn)}`;
+export const smIdGenerator = (state: string, sn: number) => {
+  return `SM${stateMap[state]}${makeNDigitNumber(sn, 5)}`;
 };
 
-const makeFiveDigitNumber = (num) => {
+export const makeNDigitNumber = (num: number, n: number) => {
   // Convert number to string
   let str = String(num);
 
   // Calculate the number of zeros to add
-  let zerosToAdd = 5 - str.length;
+  let zerosToAdd = n - str.length;
 
   // Add leading zeros
   for (let i = 0; i < zerosToAdd; i++) {
@@ -57,7 +57,7 @@ export const API_BASE_ROUTE = "/api";
 
 export const DOMAIN = "shooramall.com";
 
-export function getPriceAfterTax(tax, price) {
+export function getPriceAfterTax(tax: number, price: number) {
   const number1 = (price * (100 - tax)) / 100;
   const number2 = (price * tax) / 100;
   return { price: number1, tax: number2 };

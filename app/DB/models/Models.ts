@@ -14,7 +14,6 @@ export const ADDRESS_SCHEMA = new Schema({
   },
   landmark: {
     type: String,
-    required: true,
   },
   pincode: {
     type: Number,

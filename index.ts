@@ -1,23 +1,22 @@
 import express from "express";
-const app = express();
+import https from "https";
 import mongoose, { Schema } from "mongoose";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import multer from "multer";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 import { API_BASE_ROUTE, smIdGenerator } from "./app/utils/Utils.js";
 import { v4 as uuidv4 } from "uuid";
+import { Request, Response } from "express";
 import PaymentRouter from "./app/routes/PaymentRouter.js";
 import InvoiceRouter from "./app/routes/InvoiceRouter.js";
 import ItemsRouter from "./app/routes/ItemsRouter.js";
-import fs from "fs";
-import https from "https";
-import { Users, Product, Orders, USER_SCHEMA } from "./app/DB/models/Models.js";
+import LoginSignUpRouter from "./app/routes/LoginSignUpRouter.js";
 import BranchRouter from "./app/routes/BranchRouter.js";
+import { Users, Product, Orders, USER_SCHEMA } from "./app/DB/models/Models.js";
 
-import { Request, Response } from "express";
-
+const app = express();
 const options = {
   key: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/privkey.pem"),
   cert: fs.readFileSync("/etc/letsencrypt/live/shooramall.com/fullchain.pem"),
@@ -37,6 +36,7 @@ app.use(API_BASE_ROUTE, PaymentRouter);
 app.use(API_BASE_ROUTE, InvoiceRouter);
 app.use(API_BASE_ROUTE, ItemsRouter);
 app.use(API_BASE_ROUTE, BranchRouter);
+app.use(API_BASE_ROUTE, LoginSignUpRouter);
 
 // Database Connection With MongoDB
 try {
@@ -76,7 +76,7 @@ const fetchuser = async (req: Request, res: Response, next) => {
     res.status(401).send({ errors: "Please authenticate using a valid token" });
   }
   try {
-    const data = jwt.verify(token, "secret_ecom");
+    const data = jwt.verify(token as string, "secret_ecom") as JwtPayload;
     req.body.user = data.user;
     next();
   } catch (error) {
@@ -105,44 +105,6 @@ app.post("/api/login", async (req: Request, res: Response) => {
       console.log(user.id);
       const token = jwt.sign(data, "secret_ecom");
       res.json({ success, token });
-    } else {
-      return res.status(400).json({
-        success: success,
-        errors: "Invalid password. Please try again.",
-      });
-    }
-  } else {
-    return res.status(400).json({
-      success: success,
-      errors: "User not found. Please try with valid SM ID.",
-    });
-  }
-});
-
-//Create an endpoint at ip/login for login the user and giving auth-token
-app.post("/api/adminlogin", async (req: Request, res: Response) => {
-  console.log("Admin Login");
-  let success = false;
-  let user = await Users.findOne({ smId: req.body.smId });
-  if (user) {
-    const passCompare = req.body.password === user.password;
-    if (passCompare) {
-      if (user.isAdmin && user.isAdmin === true) {
-        const data = {
-          user: {
-            id: user.id,
-          },
-        };
-        success = true;
-        console.log(user.id);
-        const token = jwt.sign(data, "secret_ecom");
-        res.json({ success, token });
-      } else {
-        return res.status(400).json({
-          success: success,
-          errors: "You do not have admin access",
-        });
-      }
     } else {
       return res.status(400).json({
         success: success,

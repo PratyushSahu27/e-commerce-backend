@@ -1,12 +1,54 @@
 import fs from "fs";
 import PDFDocument from "pdfkit";
-import { getPriceAfterTax } from "../utils/Utils.js";
+import { number2Words, splitGST, splitPriceFromTax } from "../utils/Utils.js";
+import { request, Request, Response } from "express";
 
 const options = {
   font_path: "C:/Windows/Fonts/Arial.ttf",
 };
 
-export const generateInvoice = async (request, response) => {
+interface OrderItem {
+  id: number;
+  name: string;
+  marketRetailPrice: number;
+  quantity: number;
+  shooraPrice: number;
+  taxRate: number;
+}
+interface Address {
+  address: string;
+  city: string;
+  state: string;
+  pincode: number;
+  phoneNumber: number;
+  email: string;
+}
+interface User {
+  smId: string;
+  name: string;
+  address: Address;
+  gstNumber: number;
+}
+
+interface Seller {
+  name: string;
+  address: Address;
+  gstNumber: number;
+  fssaiLicenseNo: number;
+  branchId: string;
+}
+interface InvoiceRequestBody {
+  orderDate: string;
+  orderId: string;
+  orderValue: string;
+  user: User;
+  seller: Seller;
+  orderItems: OrderItem[];
+}
+
+let pageNumber: number = 1;
+
+export const generateInvoice = async (request: Request, response: Response) => {
   try {
     const { orderId } = request.body;
     let doc = new PDFDocument({ margin: 50 });
@@ -27,7 +69,7 @@ export const generateInvoice = async (request, response) => {
   }
 };
 
-function generateHeader(doc) {
+function generateHeader(doc: PDFKit.PDFDocument) {
   doc
     .image("app/assets/images/shoormall-logo-final-transparent.png", 40, 2, {
       width: 200,
@@ -62,8 +104,11 @@ function generateHeader(doc) {
 //   }
 // };
 
-function generateCustomerInformation(doc, data) {
-  doc.fillColor("#000000").fontSize(20).text("Invoice", 50, 140);
+function generateCustomerInformation(
+  doc: PDFKit.PDFDocument,
+  data: InvoiceRequestBody
+) {
+  doc.fillColor("#000000").fontSize(20).text("Invoice", 35, 140);
   const invoiceDate = new Date(data.orderDate);
 
   generateHr(doc, 125, "#000000");
@@ -73,7 +118,7 @@ function generateCustomerInformation(doc, data) {
   doc
     .fontSize(9)
     .font("Arial")
-    .text("Invoice Number:", 50, customerInformationTop)
+    .text("Invoice Number:", 35, customerInformationTop)
     .font("Helvetica-Bold")
     .text(`#${data.orderId}`, 120, customerInformationTop)
     .font("Helvetica")
@@ -84,75 +129,100 @@ function generateCustomerInformation(doc, data) {
       390,
       customerInformationTop
     )
-    .fontSize(10)
-    .text("Invoice From:", 50, customerInformationTop + 20)
-    .text("Invoice To:", 320, customerInformationTop + 20)
+    .fontSize(12)
+    .text("Invoice From:", 35, customerInformationTop + 22)
+    .text("Invoice To:", 320, customerInformationTop + 22)
     .fontSize(9)
     .font("Helvetica-Bold")
     .text(
-      `${data.user.name}   (SM ID - ${data.user.smId})`,
+      `Name : ${data.user.name} (${data.user.smId})`,
       320,
       customerInformationTop + 40
     )
     .text(
-      `${data.seller.name}   (Seller ID - ${data.seller.sellerId})`,
-      50,
+      `Name : ${data.seller.name} (${data.seller.branchId})`,
+      35,
       customerInformationTop + 40
     )
     .font("Helvetica")
     .fontSize(8)
-    .text(`Address:  ${data.user.address}`, 320, customerInformationTop + 55)
-    .text(`Address:  ${data.seller.address}`, 50, customerInformationTop + 55)
     .text(
-      data.user.city + ", " + data.user.state + ", " + data.user.pincode,
+      `Address:  ${data.user.address.address}`,
+      320,
+      customerInformationTop + 55
+    )
+    .text(
+      `Address:  ${data.seller.address.address}`,
+      35,
+      customerInformationTop + 55
+    )
+    .text(
+      data.user.address.city +
+        ", " +
+        data.user.address.state +
+        ", " +
+        data.user.address.pincode,
       358,
       customerInformationTop + 70
     )
     .text(
-      data.seller.city + ", " + data.seller.state + ", " + data.seller.pincode,
-      88,
+      data.seller.address.city +
+        ", " +
+        data.seller.address.state +
+        ", " +
+        data.seller.address.pincode,
+      73,
       customerInformationTop + 70
     )
     .text(
-      `Phone:     ${data.user.phoneNumber}`,
+      `Phone:     ${data.user.address.phoneNumber}`,
       320,
       customerInformationTop + 85
     )
     .text(
-      `Phone:     ${data.seller.phoneNumber}`,
-      50,
+      `Phone:     ${data.seller.address.phoneNumber}`,
+      35,
       customerInformationTop + 85
     )
     .text(
-      `Email:      ${data.user.email ?? "NA"}`,
+      `Email:      ${data.user.address.email ?? "NA"}`,
       320,
       customerInformationTop + 100
     )
     .text(
-      `Email:      ${data.seller.email ?? "NA"}`,
-      50,
+      `Email:      ${data.seller.address.email ?? "NA"}`,
+      35,
       customerInformationTop + 100
     )
     .text(
-      `GST No.:  ${data.user.gstNumber ?? "NA"}`,
+      `GSTIN:     ${data.user.gstNumber ?? "NA"}`,
       320,
       customerInformationTop + 115
     )
     .text(
-      `GST No.:  ${data.seller.gstNumber ?? "NA"}`,
-      50,
+      `GSTIN:     ${data.seller.gstNumber ?? "NA"}`,
+      35,
       customerInformationTop + 115
+    )
+    .text(
+      `FSSAI License No. :  ${data.seller.fssaiLicenseNo ?? "NA"}`,
+      35,
+      customerInformationTop + 130
     )
     .moveDown();
 
-  generateHr(doc, 310, "#000000");
+  generateHr(doc, 320, "#000000");
 }
 
-function generateInvoiceTable(doc, data) {
-  const invoiceTableTop = 330;
+function generateInvoiceTable(
+  doc: PDFKit.PDFDocument,
+  data: InvoiceRequestBody
+) {
+  let invoiceTableTop = 340;
 
   doc.font("Helvetica-Bold");
   generateTableRow(
+    6,
     doc,
     invoiceTableTop,
     "S.No.",
@@ -161,125 +231,189 @@ function generateInvoiceTable(doc, data) {
     "MRP",
     "Taxable Value",
     "Quantity",
-    "Tax Type",
+    "IGST",
+    "CGST",
+    "SGST",
     "Tax Rate",
     "Tax Amount",
     "Discount",
     "Line Total"
   );
+
+  const taxType = "IGST";
   generateHr(doc, invoiceTableTop + 20);
   doc.font("Arial");
 
+  let resetFlag = 0;
   data.orderItems.forEach((item, index) => {
-    const position = invoiceTableTop + (index + 1) * 30;
+    const position = invoiceTableTop + (index - resetFlag + 1) * 30;
+    const priceFromTaxSplit = splitPriceFromTax(
+      item.taxRate,
+      item.marketRetailPrice
+    );
+    const gstSplit = splitGST(
+      priceFromTaxSplit.tax,
+      data.user.address.state,
+      data.seller.address.state
+    );
     generateTableRow(
+      6,
       doc,
       position,
-      `${index}`,
+      `${index + 1}`,
       `${item.id}`,
       `${item.name}`,
-      `${item.market_retail_price}`,
-      `₹${getPriceAfterTax(item.taxRate, item.market_retail_price).price}`,
+      `₹${item.marketRetailPrice}`,
+      `₹${priceFromTaxSplit.price}`,
       `${item.quantity}`,
-      `${item.taxType}`,
+      gstSplit.igst ? `₹${gstSplit.igst}` : "NA",
+      gstSplit.cgst ? `₹${gstSplit.cgst}` : "NA",
+      gstSplit.sgst ? `₹${gstSplit.sgst}` : "NA",
       `${item.taxRate}%`,
-      `₹${getPriceAfterTax(item.taxRate, item.market_retail_price).tax}`,
-      `${-(item.market_retail_price - item.shoora_price)}`,
-      `₹${item.shoora_price * item.quantity}`
+      `₹${priceFromTaxSplit.tax}`,
+      `-₹${item.marketRetailPrice - item.shooraPrice}`,
+      `₹${item.shooraPrice * item.quantity}`
     );
-
     generateHr(doc, position + 20);
+    if (
+      index === 9 ||
+      index === 30 ||
+      index === 50 ||
+      index === 70 ||
+      index === 90 ||
+      index === 110 ||
+      index === 130 ||
+      index === 150 ||
+      index === 170 ||
+      index === 190 ||
+      index === 210 ||
+      index === 230 ||
+      index === 250 ||
+      index === 270 ||
+      index === 290 ||
+      index === 310 ||
+      index === 330 ||
+      index === 350 ||
+      index === 370 ||
+      index === 390 ||
+      index === 410
+    ) {
+      doc.addPage();
+      pageNumber++;
+      invoiceTableTop = 0;
+      generateHr(doc, invoiceTableTop + 50);
+      resetFlag = index;
+    }
   });
 
-  const subtotalPosition = invoiceTableTop + (invoice.items.length + 1) * 30;
-  doc.font("Helvetica-Bold");
-  generateTableRow(
+  const subtotalPosition =
+    invoiceTableTop + (data.orderItems.length - resetFlag + 1) * 30;
+  row(doc, subtotalPosition, 25, 20, 430);
+  row(doc, subtotalPosition, 455, 20, 120);
+
+  doc.fontSize(8);
+
+  textInRowFirst(
     doc,
-    subtotalPosition,
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "",
-    "Subtotal: ",
-    data.orderValue
+    `In Words: ${number2Words(data.orderValue as unknown as number)}`,
+    subtotalPosition + 6,
+    30
   );
-  doc.font("Helvetica");
+
+  textInRowFirst(
+    doc,
+    `Grand Total: ₹${data.orderValue}`,
+    subtotalPosition + 6,
+    470
+  );
+
+  row(doc, subtotalPosition + 30, 25, 50, 185);
+  row(doc, subtotalPosition + 30, 210, 50, 185);
+  row(doc, subtotalPosition + 30, 395, 50, 180);
+
+  textInRowFirst(
+    doc,
+    `Company GSTIN: 23CUHPS9677Q1ZD`,
+    subtotalPosition + 50,
+    30
+  );
+
+  textInRowFirst(
+    doc,
+    `Declaration: We declare that this invoice shows actual price of the goods described inclusive of taxes and that all particulars are true and correct.`,
+    subtotalPosition + 90,
+    30
+  );
+
+  textInRowFirst(doc, `For Authorised Signatory`, subtotalPosition + 36, 400);
 }
 
-function generateFooter(doc) {
+function generateFooter(doc: PDFKit.PDFDocument) {
   generateHr(doc, 750);
 }
-
+const x: number = 35;
 function generateTableRow(
-  doc,
-  y,
-  sNo,
-  productId,
-  description,
-  mrp,
-  taxableValue,
-  quantity,
-  taxType,
-  taxRate,
-  taxAmount,
-  discount,
-  lineTotal
+  fontSize: number,
+  doc: PDFKit.PDFDocument,
+  y: number,
+  sNo: string,
+  productId: string,
+  description: string,
+  mrp: string,
+  taxableValue: string,
+  quantity: string,
+  IGST: string,
+  CGST: string,
+  SGST: string,
+  taxRate: string,
+  taxAmount: string,
+  discount: string,
+  lineTotal: string
 ) {
   doc
-    .fontSize(8)
-    .text(sNo, 50, y, { width: 30, align: "left" })
-    .text(productId, 80, y, { width: 50, align: "left" })
-    .text(description, 130, y, { width: 90, align: "left" })
-    .text(mrp, 220, y, { width: 50, align: "right" })
-    .text(taxableValue, 270, y, { width: 90, align: "right" })
-    .text(quantity, 310, y, { width: 90, align: "right" })
-    .text(taxType, 350, y, { width: 90, align: "right" })
-    .text(taxRate, 450, y, { width: 90, align: "right" })
-    .text(taxAmount, 500, y, { width: 90, align: "right" })
-    .text(discount, 4, y, { width: 90, align: "right" })
-    .text(lineTotal, 450, y, { width: 90, align: "right" });
+    .fontSize(fontSize)
+    .text(sNo, x, y, { width: 20, align: "left" })
+    .text(productId, x + 20, y, { width: 40, align: "left" })
+    .text(description, x + 60, y, { width: 90, align: "left" })
+    .text(mrp, x + 150, y, { width: 40, align: "left" })
+    .text(taxableValue, x + 190, y, { width: 50, align: "left" })
+    .text(quantity, x + 240, y, { width: 40, align: "left" })
+    .text(IGST, x + 280, y, { width: 30, align: "left" })
+    .text(CGST, x + 310, y, { width: 30, align: "left" })
+    .text(SGST, x + 340, y, { width: 30, align: "left" })
+    .text(taxRate, x + 370, y, { width: 40, align: "left" })
+    .text(taxAmount, x + 410, y, { width: 40, align: "left" })
+    .text(discount, x + 450, y, { width: 40, align: "left" })
+    .text(lineTotal, x + 490, y, { width: 40, align: "left" });
 }
 
-function generateHr(doc, y, color = "#aaaaaa") {
-  doc.strokeColor(color).lineWidth(1).moveTo(50, y).lineTo(550, y).stroke();
+function generateHr(doc: PDFKit.PDFDocument, y: number, color = "#aaaaaa") {
+  doc.strokeColor(color).lineWidth(1).moveTo(25, y).lineTo(575, y).stroke();
 }
 
-const invoice = {
-  shipping: {
-    name: "John Doe",
-    address: "1234 Main Street",
-    city: "San Francisco",
-    state: "CA",
-    country: "US",
-    postal_code: 94111,
-  },
-  items: [
-    {
-      item: "TC 100",
-      description: "Toner Cartridge",
-      quantity: 2,
-      amount: 6000,
-      taxRate: 5,
-      taxAmount: 300,
-      taxType: "IGST",
-    },
-    {
-      item: "USB_EXT",
-      description: "USB Cable Extender",
-      quantity: 1,
-      amount: 2000,
-      taxRate: 5,
-      taxAmount: 100,
-      taxType: "IGST",
-    },
-  ],
-  subtotal: 8000,
-  paid: 0,
-  invoice_nr: 1234,
-  date: "01/01/2021",
-};
+function textInRowFirst(
+  doc: PDFKit.PDFDocument,
+  text: string,
+  height: number,
+  x: number
+) {
+  doc.y = height;
+  doc.x = x;
+  doc.fillColor("black");
+  doc.text(text, {
+    paragraphGap: 5,
+    indent: 5,
+    align: "justify",
+    columns: 1,
+  });
+}
+
+function row(
+  doc: PDFKit.PDFDocument,
+  height: number,
+  x: number,
+  rectHeight: number,
+  rectWidth: number
+) {
+  doc.lineJoin("miter").rect(x, height, rectWidth, rectHeight).stroke();
+}

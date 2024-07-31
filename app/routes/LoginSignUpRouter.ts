@@ -1,11 +1,11 @@
 import express from "express";
-import AdminLoginController from "../controllers/AdminLoginController.js";
 import { fetchUser } from "../utils/RouterUtils.js";
+import BranchLoginController from "../controllers/BranchLoginController.js";
 
 const router = express.Router();
 
-const adminLoginController = new AdminLoginController();
+const branchLoginController = new BranchLoginController();
 
-router.route("/adminlogin").post(adminLoginController.adminLogin);
+router.route("/branchlogin").post(branchLoginController.branchLogin);
 
 export default router;

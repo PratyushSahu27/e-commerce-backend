@@ -2,13 +2,13 @@ import { Request, Response } from "express";
 import { Branch, Users } from "../DB/models/Models.js";
 import jwt from "jsonwebtoken";
 
-export default class AdminLoginController {
-  adminLogin = async (request: Request, response: Response) => {
-    console.log("Admin Login");
+export default class BranchLoginController {
+  branchLogin = async (request: Request, response: Response) => {
+    console.log("Branch Login");
     let success = false;
     const branch = await Branch.findOne({ branch_id: request.body.branch_id });
     if (branch) {
-      if (request.body.login_password === branch.login_password) {
+      if (request.body.password === branch.login_password) {
         const data = {
           branch: {
             branch_id: branch.branch_id,

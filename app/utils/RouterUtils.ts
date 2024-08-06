@@ -1,8 +1,11 @@
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response } from "express";
 
-// MiddleWare to fetch user from database
-export const fetchUser = async (request: Request, response: Response, next) => {
+export const fetchUserOrBranch = async (
+  request: Request,
+  response: Response,
+  next: any
+) => {
   const token = request.header("auth-token");
   if (!token) {
     response
@@ -11,7 +14,11 @@ export const fetchUser = async (request: Request, response: Response, next) => {
   }
   try {
     const data = jwt.verify(token as string, "secret_ecom") as JwtPayload;
-    request.body.user = data.user;
+    if (data.branch) {
+      request.body.branch = data.branch;
+    } else if (data.user) {
+      request.body.user = data.user;
+    }
     next();
   } catch (error) {
     response

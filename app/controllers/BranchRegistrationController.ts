@@ -64,7 +64,6 @@ export default class BranchRegistrationController {
         gst_no: request.body.gst_no,
         fssai_no: request.body.fssai_no,
         login_password: request.body.password,
-        contact_no: request.body.contact_no,
         email_address: request.body.email_address,
       });
 

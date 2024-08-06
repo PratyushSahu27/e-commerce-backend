@@ -2,6 +2,9 @@ import mongoose, { Schema } from "mongoose";
 
 // Schema for address
 export const ADDRESS_SCHEMA = new Schema({
+  name: {
+    type: String,
+  },
   state: {
     type: String,
   },
@@ -19,10 +22,17 @@ export const ADDRESS_SCHEMA = new Schema({
     type: Number,
     required: true,
   },
+  phoneNumber: {
+    type: Number,
+  },
 });
 
 // Schema for order
 export const ORDER_SCHEMA = new Schema({
+  mode: String,
+  branchId: {
+    type: String,
+  },
   orderId: {
     type: String,
     unique: true,
@@ -44,11 +54,12 @@ export const ORDER_SCHEMA = new Schema({
     default: Date.now,
   },
   address: ADDRESS_SCHEMA,
-  completed: {
-    type: Boolean,
-    default: false,
+  status: {
+    type: String,
   },
   alternateContactNumber: Number,
+  transactionId: String,
+  transactionStatus: String,
 });
 
 // Schema for creating user model
@@ -180,7 +191,7 @@ export const BRANCH_SCHEMA = new Schema({
     required: true,
   },
   gst_no: {
-    type: Number,
+    type: String,
     required: true,
   },
   fssai_no: {
@@ -190,6 +201,9 @@ export const BRANCH_SCHEMA = new Schema({
   login_password: {
     type: String,
     required: true,
+  },
+  email_address: {
+    type: String,
   },
 });
 

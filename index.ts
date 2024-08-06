@@ -15,6 +15,8 @@ import InvoiceRouter from "./app/routes/InvoiceRouter.js";
 import ItemsRouter from "./app/routes/ItemsRouter.js";
 import LoginSignUpRouter from "./app/routes/LoginSignUpRouter.js";
 import BranchRouter from "./app/routes/BranchRouter.js";
+import OrderRouter from "./app/routes/OrderRouter.js";
+import UserRouter from "./app/routes/UserRouter.js";
 import { Users, Product, Orders, USER_SCHEMA } from "./app/DB/models/Models.js";
 
 const app = express();
@@ -38,6 +40,8 @@ app.use(API_BASE_ROUTE, InvoiceRouter);
 app.use(API_BASE_ROUTE, ItemsRouter);
 app.use(API_BASE_ROUTE, BranchRouter);
 app.use(API_BASE_ROUTE, LoginSignUpRouter);
+app.use(API_BASE_ROUTE, OrderRouter);
+app.use(API_BASE_ROUTE, UserRouter);
 
 // Database Connection With MongoDB
 try {
@@ -65,13 +69,13 @@ app.post(
   (req: Request, res: Response) => {
     res.json({
       success: 1,
-      image_url: `https://shooramall.com/api/images/${req.file.filename}`,
+      image_url: `https://shooramall.com/api/images/${req.file?.filename}`,
     });
   }
 );
 
 // MiddleWare to fetch user from database
-const fetchuser = async (req: Request, res: Response, next) => {
+const fetchuser = async (req: Request, res: Response, next: any) => {
   const token = req.header("auth-token");
   if (!token) {
     res.status(401).send({ errors: "Please authenticate using a valid token" });
@@ -99,7 +103,7 @@ app.post("/api/login", async (req: Request, res: Response) => {
     if (passCompare) {
       const data = {
         user: {
-          id: user.id,
+          id: user.smId,
         },
       };
       success = true;
@@ -226,11 +230,11 @@ app.get("/api/popularinwomen", async (req: Request, res: Response) => {
 //Create an endpoint for saving the product in cart
 app.post("/api/addtocart", fetchuser, async (req: Request, res: Response) => {
   console.log("Add Cart");
-  let userData = await Users.findOne({ _id: req.body.user.id });
+  let userData = await Users.findOne({ smId: req.body.user.id });
   if (userData) {
     userData.cartData[req.body.itemId] += 1;
     await Users.findOneAndUpdate(
-      { _id: req.body.user.id },
+      { smId: req.body.user.id },
       { cartData: userData.cartData }
     );
   }
@@ -243,7 +247,7 @@ app.post(
   fetchuser,
   async (req: Request, res: Response) => {
     console.log("Add all to cart on login");
-    let userData = await Users.findOne({ _id: req.body.user.id });
+    let userData = await Users.findOne({ smId: req.body.user.id });
     if (userData) {
       Object.keys(req.body.cartItems).forEach((itemId) => {
         if (req.body.cartItems[itemId] > 0) {
@@ -251,7 +255,7 @@ app.post(
         }
       });
       await Users.findOneAndUpdate(
-        { _id: req.body.user.id },
+        { smId: req.body.user.id },
         { cartData: userData.cartData }
       );
     }
@@ -276,13 +280,13 @@ app.post(
   fetchuser,
   async (req: Request, res: Response) => {
     console.log("Remove Cart");
-    let userData = await Users.findOne({ _id: req.body.user.id });
+    let userData = await Users.findOne({ smId: req.body.user.id });
     if (userData) {
       if (userData.cartData[req.body.itemId] != 0) {
         userData.cartData[req.body.itemId] -= 1;
       }
       await Users.findOneAndUpdate(
-        { _id: req.body.user.id },
+        { smId: req.body.user.id },
         { cartData: userData.cartData }
       );
     }
@@ -293,14 +297,18 @@ app.post(
 //Create an endpoint for saving the product in cart
 app.post("/api/getcart", fetchuser, async (req: Request, res: Response) => {
   console.log("Get Cart");
-  let userData = await Users.findOne({ _id: req.body.user.id });
+  try {
+    let userData = await Users.findOne({ smId: req.body.user.id });
   res.json(userData ? userData.cartData : userData);
+  } catch (error: any) {
+    console.log("Could not fetch cart items, ", error);
+  }
 });
 
 app.post("/api/getuser", fetchuser, async (req: Request, res: Response) => {
-  console.log("Get User");
+  console.log("Get User or Branch");
   let userData = await Users.findOne(
-    { _id: req.body.user.id },
+    { smId: req.body.user.id },
     {
       _id: 0,
       smId: 1,
@@ -354,26 +362,6 @@ https.createServer(options, app).listen(process.env.PORT || port, () => {
   console.log("Server Running on port " + port);
 });
 
-app.post("/api/placeOrder", async (req: Request, res: Response) => {
-  let orderId = uuidv4();
-  const order = new Orders({
-    orderId: orderId,
-    orderItems: req.body.orderItems,
-    smId: req.body.smId,
-    orderValue: req.body.orderValue,
-    orderPurchaseValue: req.body.orderPurchaseValue,
-    address: req.body.address,
-  });
-
-  await Users.findOneAndUpdate(
-    { smId: req.body.smId },
-    { $inc: { total_pv: req.body.orderPurchaseValue } }
-  );
-  await order.save();
-  console.log("Order placed successfully!");
-  res.json({ success: true, orderId: orderId });
-});
-
 app.post("/api/addaddress", async (req: Request, res: Response) => {
   Users.findOneAndUpdate(
     { _id: req.body.user.id },
@@ -403,9 +391,4 @@ app.post("/api/getdirectjoinees", async (req: Request, res: Response) => {
     res.send({ successful: false });
   }
   res.send({ directJoinees });
-});
-
-app.post("/api/getorders", async (req: Request, res: Response) => {
-  const orders = await Orders.find({ smId: req.body.smId });
-  res.send({ orders: orders });
 });

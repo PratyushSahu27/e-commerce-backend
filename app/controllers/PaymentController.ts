@@ -12,8 +12,8 @@ const SALT_KEY = process.env.PHONEPE_SALT_KEY;
 const SALT_INDEX = process.env.PHONEPE_SALT_INDEX;
 const APP_BACKEND_URL = process.env.BACKEND_URL;
 
-const PHONEPE_HOST_URL = "https://api.phonepe.com/apis/hermes";
-// const PHONEPE_HOST_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox";
+// const PHONEPE_HOST_URL = "https://api.phonepe.com/apis/hermes"; // Production url
+const PHONEPE_HOST_URL = "https://api-preprod.phonepe.com/apis/pg-sandbox"; // Testing Url
 const PHONEPE_PAY_API_ENDPOINT = "/pg/v1/pay";
 const PHONEPE_PAY_STATUS_ENDPOINT = "/pg/v1/status";
 
@@ -90,7 +90,7 @@ export const checkStatusAndRedirect = async (req: Request, res: Response) => {
 
   axios(options).then((response) => {
     res.redirect(
-      `http://localhost:3001/paymenthandler?status=${encodeURIComponent(
+      `https://shooramall.com/paymenthandler?status=${encodeURIComponent(
         response.data.data.code
       )}&merchantTransactionId=${encodeURIComponent(
         response.data.data.data.merchantTransactionId

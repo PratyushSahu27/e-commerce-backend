@@ -1,5 +1,9 @@
 import express from "express";
-import { getItems, getAllItems } from "../controllers/ItemsController.js";
+import {
+  getItems,
+  getAllItems,
+  updateItemAvailability,
+} from "../controllers/ItemsController.js";
 
 const router = express.Router();
 
@@ -8,5 +12,7 @@ const router = express.Router();
 router.route("/getitems/:category").get(getItems);
 
 router.route("/getallitems").get(getAllItems);
+
+router.route("/updateitemavailability").post(updateItemAvailability);
 
 export default router;

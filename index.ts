@@ -8,7 +8,6 @@ import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
 import { API_BASE_ROUTE, smIdGenerator } from "./app/utils/Utils.js";
-import { v4 as uuidv4 } from "uuid";
 import { Request, Response } from "express";
 import PaymentRouter from "./app/routes/PaymentRouter.js";
 import InvoiceRouter from "./app/routes/InvoiceRouter.js";

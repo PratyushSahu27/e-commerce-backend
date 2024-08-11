@@ -8,10 +8,21 @@ export const getItems = async (request: Request, response: Response) => {
 };
 
 export const getAllItems = async (request: Request, response: Response) => {
-  let products = await Product.find({});
+  let products = await Product.find();
   console.log("Getting all products.");
   response.send(products);
 };
+
+export const updateItemAvailability = async (
+  request: Request,
+  response: Response
+) => {
+  const { productId, isAvailable } = request.body;
+  await Product.findOneAndUpdate({ id: productId }, { available: isAvailable });
+  console.log("Update item availability");
+  response.json({ success: true });
+};
+
 // app.post("/api/addproduct", async (req, res) => {
 //   let products = await Product.find({});
 //   let id;

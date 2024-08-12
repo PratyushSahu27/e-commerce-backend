@@ -1,6 +1,9 @@
 import { request, Request, Response } from "express";
-import { Orders, Users } from "../../app/DB/models/Models.js";
+import { Branch, Orders, Users } from "../../app/DB/models/Models.js";
 import { orderStatus, transactionStatus } from "../utils/order.util.js";
+import axios from "axios";
+
+const APP_BACKEND_URL = process.env.BACKEND_URL;
 
 export const getOrders = async (request: Request, response: Response) => {
   try {
@@ -127,6 +130,52 @@ export const updateOrderTransactionId = async (
     response.json({ success: true });
   } catch (error) {
     console.log("Error updating order transaction ID - ", error);
+    response.json({ success: false, error });
+  }
+};
+
+export const markOrderAsCompleted = async (
+  request: Request,
+  response: Response
+) => {
+  const { orderId } = request.body;
+
+  try {
+    const order = await Orders.findOneAndUpdate(
+      { orderId: orderId },
+      { status: orderStatus.COMPLETED }
+    );
+
+    const user = await Users.findOne({ smId: order?.smId });
+    const branch = await Branch.findOne({ branch_id: order?.branchId });
+
+    const options = {
+      url: `${APP_BACKEND_URL}/generateinvoice`,
+      method: "POST",
+      headers: {
+        Accept: "application/form-data",
+        "Content-Type": "application/json",
+      },
+      data: {
+        orderId: order?.orderId,
+        orderDate: order?.orderDate,
+        user: {
+          smId: user?.smId,
+          name: user?.name,
+          address: order?.address,
+          gst_number: "",
+        },
+        seller: branch,
+        orderItems: order?.orderItems,
+        orderValue: order?.orderValue,
+      },
+    };
+
+    await axios(options);
+
+    response.json({ success: true });
+  } catch (error) {
+    console.log("Error marking order as completed - ", error);
     response.json({ success: false, error });
   }
 };

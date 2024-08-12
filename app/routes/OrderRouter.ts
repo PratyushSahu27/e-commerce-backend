@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getOrders,
+  markOrderAsCompleted,
   placeOrder,
   updateOrderStatus,
   updateOrderTransactionId,
@@ -20,5 +21,7 @@ router.route("/updateorderstatus").post(updateOrderStatus);
 router
   .route("/updateordertransactionstatus")
   .post(updateOrderTransactionStatus);
+
+router.route("/markorderascompleted").post(markOrderAsCompleted);
 
 export default router;

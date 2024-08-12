@@ -10,12 +10,13 @@ const options = {
 interface OrderItem {
   id: number;
   name: string;
-  marketRetailPrice: number;
+  market_retail_price: number;
   quantity: number;
-  shooraPrice: number;
-  taxRate: number;
+  shoora_price: number;
+  tax_rate: number;
 }
 interface Address {
+  name: string;
   address: string;
   city: string;
   state: string;
@@ -27,15 +28,16 @@ interface User {
   smId: string;
   name: string;
   address: Address;
-  gstNumber: number;
+  gst_number: number;
 }
 
 interface Seller {
-  name: string;
+  branch_name: string;
   address: Address;
-  gstNumber: number;
-  fssaiLicenseNo: number;
-  branchId: string;
+  gst_number: number;
+  fssai_no: number;
+  branch_id: string;
+  email_address: string;
 }
 interface InvoiceRequestBody {
   orderDate: string;
@@ -108,6 +110,8 @@ function generateCustomerInformation(
   doc: PDFKit.PDFDocument,
   data: InvoiceRequestBody
 ) {
+  console.log(data);
+
   doc.fillColor("#000000").fontSize(20).text("Invoice", 35, 140);
   const invoiceDate = new Date(data.orderDate);
 
@@ -135,12 +139,12 @@ function generateCustomerInformation(
     .fontSize(9)
     .font("Helvetica-Bold")
     .text(
-      `Name : ${data.user.name} (${data.user.smId})`,
+      `Name : ${data.user.address.name ?? data.user.name} (${data.user.smId})`,
       320,
       customerInformationTop + 40
     )
     .text(
-      `Name : ${data.seller.name} (${data.seller.branchId})`,
+      `Name : ${data.seller.branch_name} (${data.seller.branch_id})`,
       35,
       customerInformationTop + 40
     )
@@ -175,12 +179,12 @@ function generateCustomerInformation(
       customerInformationTop + 70
     )
     .text(
-      `Phone:     ${data.user.address.phoneNumber}`,
+      `Phone:     ${data.user.address.phoneNumber ?? "NA"}`,
       320,
       customerInformationTop + 85
     )
     .text(
-      `Phone:     ${data.seller.address.phoneNumber}`,
+      `Phone:     ${data.seller.address.phoneNumber ?? "NA"}`,
       35,
       customerInformationTop + 85
     )
@@ -190,22 +194,22 @@ function generateCustomerInformation(
       customerInformationTop + 100
     )
     .text(
-      `Email:      ${data.seller.address.email ?? "NA"}`,
+      `Email:      ${data.seller.email_address ?? "NA"}`,
       35,
       customerInformationTop + 100
     )
     .text(
-      `GSTIN:     ${data.user.gstNumber ?? "NA"}`,
+      `GSTIN:     ${data.user.gst_number ?? "NA"}`,
       320,
       customerInformationTop + 115
     )
     .text(
-      `GSTIN:     ${data.seller.gstNumber ?? "NA"}`,
+      `GSTIN:     ${data.seller.gst_number ?? "NA"}`,
       35,
       customerInformationTop + 115
     )
     .text(
-      `FSSAI License No. :  ${data.seller.fssaiLicenseNo ?? "NA"}`,
+      `FSSAI License No. :  ${data.seller.fssai_no ?? "NA"}`,
       35,
       customerInformationTop + 130
     )
@@ -248,8 +252,8 @@ function generateInvoiceTable(
   data.orderItems.forEach((item, index) => {
     const position = invoiceTableTop + (index - resetFlag + 1) * 30;
     const priceFromTaxSplit = splitPriceFromTax(
-      item.taxRate,
-      item.marketRetailPrice
+      item.tax_rate,
+      item.market_retail_price
     );
     const gstSplit = splitGST(
       priceFromTaxSplit.tax,
@@ -263,16 +267,16 @@ function generateInvoiceTable(
       `${index + 1}`,
       `${item.id}`,
       `${item.name}`,
-      `₹${item.marketRetailPrice}`,
+      `₹${item.market_retail_price}`,
       `₹${priceFromTaxSplit.price}`,
       `${item.quantity}`,
       gstSplit.igst ? `₹${gstSplit.igst}` : "NA",
       gstSplit.cgst ? `₹${gstSplit.cgst}` : "NA",
       gstSplit.sgst ? `₹${gstSplit.sgst}` : "NA",
-      `${item.taxRate}%`,
+      `${item.tax_rate}%`,
       `₹${priceFromTaxSplit.tax}`,
-      `-₹${item.marketRetailPrice - item.shooraPrice}`,
-      `₹${item.shooraPrice * item.quantity}`
+      `-₹${item.market_retail_price - item.shoora_price}`,
+      `₹${item.shoora_price * item.quantity}`
     );
     generateHr(doc, position + 20);
     if (

@@ -44,9 +44,10 @@ export default class BranchRegistrationController {
       branch_name: request.body.branch_name,
     })) as boolean;
 
-    const isContactNoPresent: boolean = (await Branch.findOne({
-      contact_no: request.body.contact_no,
-    })) as boolean;
+    const isContactNoPresent: boolean =
+      (await Branch.findOne({
+        "address.phoneNumber": request.body.address.contact_no,
+      })) !== null;
 
     const branchId = await this.branchIdGenerator(request.body.branch_name);
 

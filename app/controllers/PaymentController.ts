@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import sha256 from "sha256";
 import axios from "axios";
-import { Request, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
 import crypto from "crypto";
 
 dotenv.config();
@@ -89,7 +89,7 @@ export const checkStatusAndRedirect = async (req: Request, res: Response) => {
 
   axios(options).then((response) => {
     res.redirect(
-      `http://localhost:3000/paymenthandler?status=${encodeURIComponent(
+      `https://shooramall.com/paymenthandler?status=${encodeURIComponent(
         response.data.data.code
       )}&merchantTransactionId=${encodeURIComponent(
         response.data.data.data.merchantTransactionId

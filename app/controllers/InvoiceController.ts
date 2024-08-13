@@ -61,7 +61,7 @@ export const generateInvoice = async (request: Request, response: Response) => {
   try {
     const { orderId } = request.body;
     let doc = new PDFDocument({ margin: 50 });
-    doc.registerFont("Arial", "/usr/share/fonts/msttcorefonts/arial.ttf");
+    doc.registerFont("Arial", "/usr/share/fonts/dejavu/DejaVuSans.ttf");
 
     generateHeader(doc);
     generateCustomerInformation(doc, request.body);

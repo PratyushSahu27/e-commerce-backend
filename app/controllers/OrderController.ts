@@ -19,8 +19,11 @@ export const getOrders = async (request: Request, response: Response) => {
 };
 
 export const placeOrder = async (request: Request, response: Response) => {
+  const user = await Users.findOne({ smId: request.body.smId });
   const order = new Orders({
     mode: request.body.mode,
+    buyer_name: user?.name,
+    buyer_contact: user?.phoneNumber,
     branchId: request.body.branchId,
     orderId: request.body.orderId,
     orderItems: request.body.orderItems,
@@ -162,6 +165,7 @@ export const markOrderAsCompleted = async (
         user: {
           smId: user?.smId,
           name: user?.name,
+          phoneNumber: user?.phoneNumber,
           address: order?.address,
           gst_number: "",
         },

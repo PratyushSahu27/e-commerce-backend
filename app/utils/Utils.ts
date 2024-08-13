@@ -74,19 +74,57 @@ const tens = "Twenty Thirty Forty Fifty Sixty Seventy Eighty Ninety".split(" ");
 
 export function number2Words(n: number): string {
   if (n < 20) return num[n];
-  var digit = n % 10;
-  if (n < 100) return tens[~~(n / 10) - 2] + (digit ? "-" + num[digit] : "");
+
+  let digit = n % 10;
+  if (n < 100)
+    return tens[Math.floor(n / 10) - 2] + (digit ? "-" + num[digit] : "");
+
   if (n < 1000)
     return (
-      num[~~(n / 100)] +
+      num[Math.floor(n / 100)] +
       " Hundred" +
-      (n % 100 == 0 ? "" : " and " + number2Words(n % 100))
+      (n % 100 === 0 ? "" : " and " + number2Words(n % 100))
     );
+
+  if (n < 1000000)
+    return (
+      number2Words(Math.floor(n / 1000)) +
+      " Thousand" +
+      (n % 1000 !== 0 ? " " + number2Words(n % 1000) : "")
+    );
+
+  if (n < 1000000000)
+    return (
+      number2Words(Math.floor(n / 100000)) +
+      " Lakh" +
+      (n % 1000000 !== 0 ? " " + number2Words(n % 1000000) : "")
+    );
+
   return (
-    number2Words(~~(n / 1000)) +
-    " Thousand" +
-    (n % 1000 != 0 ? " " + number2Words(n % 1000) : "")
+    number2Words(Math.floor(n / 10000000)) +
+    " Crore" +
+    (n % 1000000000 !== 0 ? " " + number2Words(n % 1000000000) : "")
   );
+}
+
+export function number2WordsWithDecimal(n: number): string {
+  const integerPart = Math.floor(n);
+  const fractionalPart = n - integerPart;
+
+  let result = number2Words(integerPart);
+
+  if (fractionalPart > 0) {
+    const fractionalStr = fractionalPart
+      .toFixed(10)
+      .slice(2)
+      .replace(/0+$/, ""); // Convert fractional part to a string and remove trailing zeros
+    result += " Point";
+    for (let digit of fractionalStr) {
+      result += " " + num[parseInt(digit)];
+    }
+  }
+
+  return result;
 }
 
 export function splitGST(
@@ -95,7 +133,11 @@ export function splitGST(
   sellerState: string
 ): { igst: string; sgst: string; cgst: string } {
   if (userState === sellerState) {
-    return { igst: "", sgst: `${taxAmount / 2}`, cgst: `${taxAmount / 2}` };
+    return {
+      igst: "",
+      sgst: (taxAmount / 2).toFixed(3),
+      cgst: (taxAmount / 2).toFixed(3),
+    };
   }
   return { igst: `${taxAmount}`, sgst: "", cgst: "" };
 }

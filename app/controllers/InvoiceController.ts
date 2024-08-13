@@ -1,7 +1,13 @@
 import fs from "fs";
 import PDFDocument from "pdfkit";
-import { number2Words, splitGST, splitPriceFromTax } from "../utils/Utils.js";
+import {
+  number2Words,
+  number2WordsWithDecimal,
+  splitGST,
+  splitPriceFromTax,
+} from "../utils/Utils.js";
 import { request, Request, Response } from "express";
+import path from "path";
 
 const options = {
   font_path: "C:/Windows/Fonts/Arial.ttf",
@@ -27,14 +33,15 @@ interface Address {
 interface User {
   smId: string;
   name: string;
+  phoneNumber: number;
   address: Address;
-  gst_number: number;
+  gst_no: number;
 }
 
 interface Seller {
   branch_name: string;
   address: Address;
-  gst_number: number;
+  gst_no: number;
   fssai_no: number;
   branch_id: string;
   email_address: string;
@@ -71,6 +78,21 @@ export const generateInvoice = async (request: Request, response: Response) => {
   }
 };
 
+export const downloadInvoice = (request: Request, response: Response) => {
+  const filename = request.params.filename;
+  const filePath = path.join("invoices", filename);
+
+  if (fs.existsSync(filePath)) {
+    response.download(filePath, (err) => {
+      if (err) {
+        console.error("Error sending the file:", err);
+      }
+    });
+  } else {
+    response.status(404).json({ error: "Invoice not found" });
+  }
+};
+
 function generateHeader(doc: PDFKit.PDFDocument) {
   doc
     .image("app/assets/images/shoormall-logo-final-transparent.png", 40, 2, {
@@ -90,21 +112,6 @@ function generateHeader(doc: PDFKit.PDFDocument) {
     .text("Mail Us: support@shooramall.com", 200, 95, { align: "center" })
     .moveDown();
 }
-
-// export const downloadInvoice = (req, res) => {
-//   const filename = req.params.filename;
-//   const filePath = path.join(invoiceDir, filename);
-
-//   if (fs.existsSync(filePath)) {
-//     res.download(filePath, (err) => {
-//       if (err) {
-//         console.error("Error sending the file:", err);
-//       }
-//     });
-//   } else {
-//     res.status(404).json({ error: "Invoice not found" });
-//   }
-// };
 
 function generateCustomerInformation(
   doc: PDFKit.PDFDocument,
@@ -179,7 +186,9 @@ function generateCustomerInformation(
       customerInformationTop + 70
     )
     .text(
-      `Phone:     ${data.user.address.phoneNumber ?? "NA"}`,
+      `Phone:     ${
+        data.user.address.phoneNumber ?? data.user.phoneNumber ?? "NA"
+      }`,
       320,
       customerInformationTop + 85
     )
@@ -199,12 +208,12 @@ function generateCustomerInformation(
       customerInformationTop + 100
     )
     .text(
-      `GSTIN:     ${data.user.gst_number ?? "NA"}`,
+      `GSTIN:     ${data.user.gst_no ?? "NA"}`,
       320,
       customerInformationTop + 115
     )
     .text(
-      `GSTIN:     ${data.seller.gst_number ?? "NA"}`,
+      `GSTIN:     ${data.seller.gst_no ?? "NA"}`,
       35,
       customerInformationTop + 115
     )
@@ -275,8 +284,8 @@ function generateInvoiceTable(
       gstSplit.sgst ? `₹${gstSplit.sgst}` : "NA",
       `${item.tax_rate}%`,
       `₹${priceFromTaxSplit.tax}`,
-      `-₹${item.market_retail_price - item.shoora_price}`,
-      `₹${item.shoora_price * item.quantity}`
+      `-₹${(item.market_retail_price - item.shoora_price).toFixed(2)}`,
+      `₹${(item.shoora_price * item.quantity).toFixed(2)}`
     );
     generateHr(doc, position + 20);
     if (
@@ -319,7 +328,9 @@ function generateInvoiceTable(
 
   textInRowFirst(
     doc,
-    `In Words: ${number2Words(data.orderValue as unknown as number)}`,
+    `In Words: ${number2WordsWithDecimal(
+      data.orderValue as unknown as number
+    )}`,
     subtotalPosition + 6,
     30
   );
@@ -379,16 +390,16 @@ function generateTableRow(
     .text(sNo, x, y, { width: 20, align: "left" })
     .text(productId, x + 20, y, { width: 40, align: "left" })
     .text(description, x + 60, y, { width: 90, align: "left" })
-    .text(mrp, x + 150, y, { width: 40, align: "left" })
-    .text(taxableValue, x + 190, y, { width: 50, align: "left" })
-    .text(quantity, x + 240, y, { width: 40, align: "left" })
-    .text(IGST, x + 280, y, { width: 30, align: "left" })
-    .text(CGST, x + 310, y, { width: 30, align: "left" })
-    .text(SGST, x + 340, y, { width: 30, align: "left" })
-    .text(taxRate, x + 370, y, { width: 40, align: "left" })
-    .text(taxAmount, x + 410, y, { width: 40, align: "left" })
-    .text(discount, x + 450, y, { width: 40, align: "left" })
-    .text(lineTotal, x + 490, y, { width: 40, align: "left" });
+    .text(mrp, x + 150, y, { width: 40, align: "right" })
+    .text(taxableValue, x + 190, y, { width: 50, align: "right" })
+    .text(quantity, x + 240, y, { width: 40, align: "right" })
+    .text(IGST, x + 280, y, { width: 30, align: "right" })
+    .text(CGST, x + 310, y, { width: 30, align: "right" })
+    .text(SGST, x + 340, y, { width: 30, align: "right" })
+    .text(taxRate, x + 370, y, { width: 40, align: "right" })
+    .text(taxAmount, x + 410, y, { width: 40, align: "right" })
+    .text(discount, x + 450, y, { width: 40, align: "right" })
+    .text(lineTotal, x + 490, y, { width: 40, align: "right" });
 }
 
 function generateHr(doc: PDFKit.PDFDocument, y: number, color = "#aaaaaa") {

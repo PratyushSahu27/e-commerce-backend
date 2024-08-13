@@ -30,6 +30,8 @@ export const ADDRESS_SCHEMA = new Schema({
 // Schema for order
 export const ORDER_SCHEMA = new Schema({
   mode: String,
+  buyer_name: String,
+  buyer_contact: Number,
   branchId: {
     type: String,
   },
@@ -71,19 +73,24 @@ export const USER_SCHEMA = new Schema({
   smId: {
     type: String,
     unique: true,
+    required: true,
   },
   name: {
     type: String,
+    required: true,
   },
   guideId: {
     type: String,
+    required: true,
   },
   email: {
     type: String,
+    required: true,
   },
   phoneNumber: {
     type: Number,
     unique: true,
+    required: true,
   },
   password: {
     type: String,

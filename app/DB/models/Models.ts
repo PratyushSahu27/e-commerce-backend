@@ -62,6 +62,8 @@ export const ORDER_SCHEMA = new Schema({
   alternateContactNumber: Number,
   transactionId: String,
   transactionStatus: String,
+  deliveryDocketNumber: String,
+  deliveryServiceName: String,
 });
 
 // Schema for creating user model

@@ -38,10 +38,6 @@ export const placeOrder = async (request: Request, response: Response) => {
       request.body.transactionStatus ?? transactionStatus.INITIATED,
   });
 
-  await Users.findOneAndUpdate(
-    { smId: request.body.smId },
-    { $inc: { total_pv: request.body.orderPurchaseValue } }
-  );
   await order.save();
   console.log("Order placed successfully!");
   response.json({ success: true });
@@ -53,8 +49,16 @@ export const updateOrderStatus = async (
 ) => {
   const { orderId, status } = request.body;
   try {
-    await Orders.findOneAndUpdate({ orderId: orderId }, { status: status });
+    const order = await Orders.findOne({ orderId: orderId });
 
+    if (order?.status !== "COMPLETED" && status === "COMPLETED") {
+      await Users.findOneAndUpdate(
+        { smId: request.body.smId },
+        { $inc: { total_pv: request.body.orderPurchaseValue } }
+      );
+    }
+
+    await Orders.findOneAndUpdate({ orderId: orderId }, { status: status });
     response.json({ success: true });
   } catch (error) {
     console.log("Error updating order status - ", error);
@@ -141,12 +145,16 @@ export const markOrderAsCompleted = async (
   request: Request,
   response: Response
 ) => {
-  const { orderId } = request.body;
+  const { orderId, deliveryDocketNumber, deliveryServiceName } = request.body;
 
   try {
     const order = await Orders.findOneAndUpdate(
       { orderId: orderId },
-      { status: orderStatus.COMPLETED }
+      {
+        status: orderStatus.COMPLETED,
+        deliveryDocketNumber,
+        deliveryServiceName,
+      }
     );
 
     const user = await Users.findOne({ smId: order?.smId });

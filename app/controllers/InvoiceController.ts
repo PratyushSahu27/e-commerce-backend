@@ -19,7 +19,7 @@ interface OrderItem {
   market_retail_price: number;
   quantity: number;
   shoora_price: number;
-  tax_rate: number;
+  tax_rate: string;
 }
 interface Address {
   name: string;

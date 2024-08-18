@@ -394,10 +394,10 @@ function generateTableRow(
     .text(discount, x + 190, y, { width: 40, align: "right" })
     .text(taxableValue, x + 230, y, { width: 50, align: "right" })
     .text(quantity, x + 280, y, { width: 40, align: "right" })
-    .text(IGST, x + 310, y, { width: 30, align: "right" })
-    .text(CGST, x + 340, y, { width: 30, align: "right" })
-    .text(SGST, x + 370, y, { width: 30, align: "right" })
-    .text(taxRate, x + 410, y, { width: 40, align: "right" })
+    .text(IGST, x + 310, y, { width: 40, align: "right" })
+    .text(CGST, x + 350, y, { width: 40, align: "right" })
+    .text(SGST, x + 390, y, { width: 40, align: "right" })
+    .text(taxRate, x + 430, y, { width: 20, align: "right" })
     .text(taxAmount, x + 450, y, { width: 40, align: "right" })
     .text(lineTotal, x + 490, y, { width: 40, align: "right" });
 }

@@ -61,8 +61,8 @@ export function splitPriceFromTax(
   tax: number,
   price: number
 ): { price: number; tax: number } {
-  const number1 = (price * (100 - tax)) / 100;
-  const number2 = (price * tax) / 100;
+  const number1 = parseFloat(((price * 100) / (100 + tax)).toFixed(3));
+  const number2 = parseFloat(((price * tax) / (100 + tax)).toFixed(3));
   return { price: number1, tax: number2 };
 }
 
@@ -131,13 +131,13 @@ export function splitGST(
   taxAmount: number,
   userState: string,
   sellerState: string
-): { igst: string; sgst: string; cgst: string } {
+): { igst: number | null; sgst: number | null; cgst: number | null } {
   if (userState === sellerState) {
     return {
-      igst: "",
-      sgst: (taxAmount / 2).toFixed(3),
-      cgst: (taxAmount / 2).toFixed(3),
+      igst: null,
+      sgst: parseFloat((taxAmount / 2).toFixed(3)),
+      cgst: parseFloat((taxAmount / 2).toFixed(3)),
     };
   }
-  return { igst: `${taxAmount}`, sgst: "", cgst: "" };
+  return { igst: parseFloat(taxAmount.toFixed(3)), sgst: null, cgst: null };
 }

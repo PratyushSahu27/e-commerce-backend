@@ -242,15 +242,15 @@ function generateInvoiceTable(
     "Product ID",
     "Item",
     "MRP",
-    "Taxable Value",
+    "Discount",
+    "Unit Price",
     "Quantity",
     "IGST",
     "CGST",
     "SGST",
     "Tax Rate",
     "Tax Amount",
-    "Discount",
-    "Line Total"
+    "Line Total (SM Price)"
   );
 
   const taxType = "IGST";
@@ -262,7 +262,7 @@ function generateInvoiceTable(
     const position = invoiceTableTop + (index - resetFlag + 1) * 30;
     const priceFromTaxSplit = splitPriceFromTax(
       item.tax_rate,
-      item.market_retail_price
+      item.shoora_price
     );
     const gstSplit = splitGST(
       priceFromTaxSplit.tax,
@@ -277,14 +277,14 @@ function generateInvoiceTable(
       `${item.id}`,
       `${item.name}`,
       `₹${item.market_retail_price}`,
+      `-₹${(item.market_retail_price - item.shoora_price).toFixed(2)}`,
       `₹${priceFromTaxSplit.price}`,
       `${item.quantity}`,
-      gstSplit.igst ? `₹${gstSplit.igst}` : "NA",
-      gstSplit.cgst ? `₹${gstSplit.cgst}` : "NA",
-      gstSplit.sgst ? `₹${gstSplit.sgst}` : "NA",
+      gstSplit.igst ? `₹${gstSplit.igst * item.quantity}` : "NA",
+      gstSplit.cgst ? `₹${gstSplit.cgst * item.quantity}` : "NA",
+      gstSplit.sgst ? `₹${gstSplit.sgst * item.quantity}` : "NA",
       `${item.tax_rate}%`,
-      `₹${priceFromTaxSplit.tax}`,
-      `-₹${(item.market_retail_price - item.shoora_price).toFixed(2)}`,
+      `₹${priceFromTaxSplit.tax * item.quantity}`,
       `₹${(item.shoora_price * item.quantity).toFixed(2)}`
     );
     generateHr(doc, position + 20);
@@ -375,6 +375,7 @@ function generateTableRow(
   productId: string,
   description: string,
   mrp: string,
+  discount: string,
   taxableValue: string,
   quantity: string,
   IGST: string,
@@ -382,7 +383,6 @@ function generateTableRow(
   SGST: string,
   taxRate: string,
   taxAmount: string,
-  discount: string,
   lineTotal: string
 ) {
   doc
@@ -391,14 +391,14 @@ function generateTableRow(
     .text(productId, x + 20, y, { width: 40, align: "left" })
     .text(description, x + 60, y, { width: 90, align: "left" })
     .text(mrp, x + 150, y, { width: 40, align: "right" })
-    .text(taxableValue, x + 190, y, { width: 50, align: "right" })
-    .text(quantity, x + 240, y, { width: 40, align: "right" })
-    .text(IGST, x + 280, y, { width: 30, align: "right" })
-    .text(CGST, x + 310, y, { width: 30, align: "right" })
-    .text(SGST, x + 340, y, { width: 30, align: "right" })
-    .text(taxRate, x + 370, y, { width: 40, align: "right" })
-    .text(taxAmount, x + 410, y, { width: 40, align: "right" })
-    .text(discount, x + 450, y, { width: 40, align: "right" })
+    .text(discount, x + 190, y, { width: 40, align: "right" })
+    .text(taxableValue, x + 230, y, { width: 50, align: "right" })
+    .text(quantity, x + 280, y, { width: 40, align: "right" })
+    .text(IGST, x + 310, y, { width: 30, align: "right" })
+    .text(CGST, x + 340, y, { width: 30, align: "right" })
+    .text(SGST, x + 370, y, { width: 30, align: "right" })
+    .text(taxRate, x + 410, y, { width: 40, align: "right" })
+    .text(taxAmount, x + 450, y, { width: 40, align: "right" })
     .text(lineTotal, x + 490, y, { width: 40, align: "right" });
 }
 

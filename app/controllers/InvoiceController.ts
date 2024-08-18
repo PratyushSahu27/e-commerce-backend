@@ -393,7 +393,7 @@ function generateTableRow(
     .text(mrp, x + 150, y, { width: 40, align: "right" })
     .text(discount, x + 190, y, { width: 40, align: "right" })
     .text(taxableValue, x + 230, y, { width: 50, align: "right" })
-    .text(quantity, x + 280, y, { width: 40, align: "right" })
+    .text(quantity, x + 280, y, { width: 40, align: "center" })
     .text(IGST, x + 310, y, { width: 40, align: "right" })
     .text(CGST, x + 350, y, { width: 40, align: "right" })
     .text(SGST, x + 390, y, { width: 40, align: "right" })

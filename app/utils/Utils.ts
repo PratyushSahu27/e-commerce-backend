@@ -58,11 +58,15 @@ export const API_BASE_ROUTE = "/api";
 export const DOMAIN = "shooramall.com";
 
 export function splitPriceFromTax(
-  tax: number,
+  tax: string,
   price: number
 ): { price: number; tax: number } {
-  const number1 = parseFloat(((price * 100) / (100 + tax)).toFixed(3));
-  const number2 = parseFloat(((price * tax) / (100 + tax)).toFixed(3));
+  const number1 = parseFloat(
+    ((price * 100) / (100 + parseInt(tax))).toFixed(3)
+  );
+  const number2 = parseFloat(
+    ((price * (100 + parseInt(tax))) / (100 + parseInt(tax))).toFixed(3)
+  );
   return { price: number1, tax: number2 };
 }
 

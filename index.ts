@@ -197,7 +197,7 @@ app.post("/api/signup", async (req: Request, res: Response) => {
   await user.save();
   const data = {
     user: {
-      id: user.id,
+      id: user.smId,
     },
   };
 

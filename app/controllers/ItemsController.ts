@@ -23,6 +23,46 @@ export const updateItemAvailability = async (
   response.json({ success: true });
 };
 
+export const updateItemDetails = async (
+  request: Request,
+  response: Response
+) => {
+  const {
+    id,
+    name,
+    category,
+    retail_price,
+    shoora_price,
+    purchase_value,
+    tax_rate,
+    quantity_unit,
+    quantity_value,
+    available,
+  } = request.body;
+  console.log(request.body);
+
+  try {
+    await Product.findOneAndUpdate(
+      { id: id },
+      {
+        name: name,
+        category: category,
+        market_retail_price: retail_price,
+        shoora_price,
+        purchase_value,
+        tax_rate,
+        quantity_unit,
+        quantity_value,
+        available,
+      }
+    );
+    response.json({ success: true });
+  } catch (error) {
+    console.log("Error while updating item details: ", error);
+    response.json({ success: false, error: error });
+  }
+};
+
 // app.post("/api/addproduct", async (req, res) => {
 //   let products = await Product.find({});
 //   let id;

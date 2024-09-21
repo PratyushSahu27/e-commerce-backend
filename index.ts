@@ -383,7 +383,7 @@ app.post("/api/getdirectjoinees", async (req: Request, res: Response) => {
   try {
     directJoinees = await Users.find(
       { guideId: req.body.user.smId },
-      { _id: 0, smId: 1, name: 1, guideId: 1 }
+      { _id: 0, smId: 1, name: 1, guideId: 1, phoneNumber: 1 }
     );
   } catch (e) {
     console.log("Unable to get direct joinees: ", e);

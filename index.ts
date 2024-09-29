@@ -1,9 +1,9 @@
 import fs from "fs";
-import express from "express";
+import express, { NextFunction } from "express";
 import https from "https";
 import mongoose, { Schema } from "mongoose";
 import jwt, { JwtPayload } from "jsonwebtoken";
-import multer from "multer";
+import multer, { MulterError } from "multer";
 import path from "path";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -16,6 +16,7 @@ import LoginSignUpRouter from "./app/routes/LoginSignUpRouter.js";
 import BranchRouter from "./app/routes/BranchRouter.js";
 import OrderRouter from "./app/routes/OrderRouter.js";
 import UserRouter from "./app/routes/UserRouter.js";
+import KycRouter from "./app/routes/KycRouter.js";
 import { Users, Product, Orders, USER_SCHEMA } from "./app/DB/models/Models.js";
 
 const app = express();
@@ -28,10 +29,11 @@ dotenv.config();
 const port = process.env.PORT;
 const MONGODB_URL = process.env.DB_URL as string;
 
-app.use(express.json());
+app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(`${API_BASE_ROUTE}/images`, express.static("upload/images"));
+app.use(`${API_BASE_ROUTE}/kyc-docs`, express.static("upload/kyc-docs"));
 
 // Routes
 app.use(API_BASE_ROUTE, PaymentRouter);
@@ -41,6 +43,23 @@ app.use(API_BASE_ROUTE, BranchRouter);
 app.use(API_BASE_ROUTE, LoginSignUpRouter);
 app.use(API_BASE_ROUTE, OrderRouter);
 app.use(API_BASE_ROUTE, UserRouter);
+app.use(API_BASE_ROUTE, KycRouter);
+
+// Handling errors
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err instanceof MulterError) {
+    // Multer-specific errors
+
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(413).send("File size exceeds limit.");
+    }
+  } else if (err instanceof Error) {
+    if (err.message === "Invalid_file_type")
+      return res.status(400).send(err.message);
+  }
+  console.log(err);
+  res.status(500).send("An unexpected error occurred.");
+});
 
 // Database Connection With MongoDB
 try {

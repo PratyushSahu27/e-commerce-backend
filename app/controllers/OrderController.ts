@@ -30,6 +30,7 @@ export const placeOrder = async (request: Request, response: Response) => {
     smId: request.body.smId,
     orderValue: request.body.orderValue,
     orderPurchaseValue: request.body.orderPurchaseValue,
+    deliveryCharge: request.body.deliveryCharge,
     address: request.body.address,
     status: request.body.status ?? orderStatus.INITIATED,
     alternateContactNumber: request.body.alternateContactNumber,
@@ -180,6 +181,7 @@ export const markOrderAsCompleted = async (
         seller: branch,
         orderItems: order?.orderItems,
         orderValue: order?.orderValue,
+        deliveryCharge: order?.deliveryCharge,
       },
     };
 

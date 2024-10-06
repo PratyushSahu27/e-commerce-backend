@@ -50,6 +50,7 @@ interface InvoiceRequestBody {
   orderDate: string;
   orderId: string;
   orderValue: string;
+  deliveryCharge: string;
   user: User;
   seller: Seller;
   orderItems: OrderItem[];
@@ -351,6 +352,13 @@ function generateInvoiceTable(
     `Company GSTIN: 23CUHPS9677Q1ZD`,
     subtotalPosition + 50,
     30
+  );
+
+  textInRowFirst(
+    doc,
+    `Delivery Charge: ₹${data.deliveryCharge}`,
+    subtotalPosition + 50,
+    220
   );
 
   textInRowFirst(

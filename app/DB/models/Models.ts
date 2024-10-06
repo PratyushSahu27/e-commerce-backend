@@ -51,6 +51,9 @@ export const ORDER_SCHEMA = new Schema({
   orderPurchaseValue: {
     type: Number,
   },
+  deliveryCharge: {
+    type: Number,
+  },
   orderDate: {
     type: Date,
     default: Date.now,
@@ -59,11 +62,21 @@ export const ORDER_SCHEMA = new Schema({
   status: {
     type: String,
   },
-  alternateContactNumber: Number,
-  transactionId: String,
-  transactionStatus: String,
-  deliveryDocketNumber: String,
-  deliveryServiceName: String,
+  alternateContactNumber: {
+    type: Number,
+  },
+  transactionId: {
+    type: String,
+  },
+  transactionStatus: {
+    type: String,
+  },
+  deliveryDocketNumber: {
+    type: String,
+  },
+  deliveryServiceName: {
+    type: String,
+  },
 });
 
 // Schema for creating user model

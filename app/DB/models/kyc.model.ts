@@ -1,11 +1,5 @@
 import mongoose, { Schema } from "mongoose";
 
-const ID_TYPES = {
-  AADHAAR: "AADHAAR",
-  PAN: "PAN",
-  CHEQUE: "CHEQUE",
-};
-
 const KYC_DETAIL_SCHEMA = new Schema({
   image: {
     type: String,
@@ -19,9 +13,14 @@ const KYC_DETAIL_SCHEMA = new Schema({
   idNumber: {
     type: String,
   },
-  idType: {
+  accountNumber: {
     type: String,
-    enum: Object.values(ID_TYPES), // Validate against ID_TYPES values
+  },
+  bankName: {
+    type: String,
+  },
+  ifsCode: {
+    type: String,
   },
   verifierComments: {
     type: String,
@@ -34,27 +33,15 @@ const KYC_DETAIL_SCHEMA = new Schema({
 const KYC_DETAILS_SCHEMA = new Schema({
   aadhaarDetails: {
     type: KYC_DETAIL_SCHEMA,
-    default: function () {
-      return {
-        idType: ID_TYPES.AADHAAR, // Default type for Aadhaar details
-      };
-    },
   },
   panDetails: {
     type: KYC_DETAIL_SCHEMA,
-    default: function () {
-      return {
-        idType: ID_TYPES.PAN, // Default type for PAN details
-      };
-    },
   },
   chequeDetails: {
     type: KYC_DETAIL_SCHEMA,
-    default: function () {
-      return {
-        idType: ID_TYPES.CHEQUE, // Default type for Cheque details
-      };
-    },
+  },
+  passportPhoto: {
+    type: KYC_DETAIL_SCHEMA,
   },
 });
 

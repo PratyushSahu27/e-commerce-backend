@@ -154,11 +154,18 @@ app.post("/api/signup", async (req: Request, res: Response) => {
     });
   }
 
-  let check2 = await Users.findOne({ smId: req.body.guideId });
-  if (!check2) {
+  const user1 = await Users.findOne({ smId: req.body.guideId });
+  if (!user1) {
     return res.status(400).json({
       success: success,
       errors: "Guide ID is invalid",
+    });
+  }
+
+  if (!user1.isActive) {
+    return res.status(400).json({
+      success: success,
+      errors: "Guide ID is inactive",
     });
   }
 

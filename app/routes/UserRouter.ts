@@ -1,8 +1,13 @@
 import express from "express";
-import { getUser } from "../controllers/UserController.js";
+import {
+  changeUserActiveStatus,
+  getUser,
+} from "../controllers/UserController.js";
 
 const router = express.Router();
 
 router.route("/getuser").post(getUser);
+
+router.route("/changeUserActiveStatus").post(changeUserActiveStatus);
 
 export default router;

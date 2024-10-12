@@ -138,6 +138,10 @@ export const USER_SCHEMA = new Schema({
     type: Boolean,
     default: false,
   },
+  isActive: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 // Schema for product model

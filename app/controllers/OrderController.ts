@@ -59,6 +59,13 @@ export const updateOrderStatus = async (
       );
     }
 
+    if (status === "CONFIRMED") {
+      await Users.findOneAndUpdate(
+        { smId: request.body.smId },
+        { isActive: true }
+      );
+    }
+
     await Orders.findOneAndUpdate({ orderId: orderId }, { status: status });
     response.json({ success: true });
   } catch (error) {

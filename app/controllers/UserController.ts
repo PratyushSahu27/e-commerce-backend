@@ -15,3 +15,16 @@ export const getUser = async (request: Request, response: Response) => {
     response.json({ success: false, error });
   }
 };
+
+export const changeUserActiveStatus = async (
+  request: Request,
+  response: Response
+) => {
+  try {
+    const { smId, isActive } = request.body;
+    await Users.findOneAndUpdate({ smId: smId }, { isActive: isActive });
+    response.json({ success: true });
+  } catch (error) {
+    response.json({ success: false, error });
+  }
+};

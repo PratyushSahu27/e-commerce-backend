@@ -59,7 +59,7 @@ export const updateOrderStatus = async (
       );
     }
 
-    if (status === "CONFIRMED") {
+    if (status === "CONFIRMED" || status === "COMPLETED") {
       await Users.findOneAndUpdate(
         { smId: request.body.smId },
         { isActive: true }
@@ -81,13 +81,18 @@ export const updateOrderTransactionStatus = async (
   const { transactionId, status } = request.body;
   try {
     if (status === "PAYMENT_SUCCESS") {
-      await Orders.findOneAndUpdate(
+      const order = await Orders.findOneAndUpdate(
         { transactionId: transactionId },
         {
           transactionStatus: transactionStatus.SUCCESS,
           status: orderStatus.CONFIRMED,
         }
       );
+      order &&
+        (await Users.findOneAndUpdate(
+          { smId: order.smId },
+          { isActive: true }
+        ));
     } else if (
       status === "INTERNAL_SERVER_ERROR" ||
       status === "PAYMENT_PENDING"
@@ -165,7 +170,14 @@ export const markOrderAsCompleted = async (
       }
     );
 
-    const user = await Users.findOne({ smId: order?.smId });
+    let user;
+    if (order) {
+      user = await Users.findOneAndUpdate(
+        { smId: order.smId },
+        { $inc: { total_pv: order.orderPurchaseValue } }
+      );
+    }
+
     const branch = await Branch.findOne({ branch_id: order?.branchId });
 
     const options = {

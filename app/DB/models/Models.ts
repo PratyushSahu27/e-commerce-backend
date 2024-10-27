@@ -1,237 +1,252 @@
 import mongoose, { Schema } from "mongoose";
 
 // Schema for address
-export const ADDRESS_SCHEMA = new Schema({
-  name: {
-    type: String,
+export const ADDRESS_SCHEMA = new Schema(
+  {
+    name: {
+      type: String,
+    },
+    state: {
+      type: String,
+    },
+    city: {
+      type: String,
+    },
+    address: {
+      type: String,
+      required: true,
+    },
+    landmark: {
+      type: String,
+    },
+    pincode: {
+      type: Number,
+      required: true,
+    },
+    phoneNumber: {
+      type: Number,
+    },
   },
-  state: {
-    type: String,
-  },
-  city: {
-    type: String,
-  },
-  address: {
-    type: String,
-    required: true,
-  },
-  landmark: {
-    type: String,
-  },
-  pincode: {
-    type: Number,
-    required: true,
-  },
-  phoneNumber: {
-    type: Number,
-  },
-});
+  { timestamps: true }
+);
 
 // Schema for order
-export const ORDER_SCHEMA = new Schema({
-  mode: String,
-  buyer_name: String,
-  buyer_contact: Number,
-  branchId: {
-    type: String,
+export const ORDER_SCHEMA = new Schema(
+  {
+    mode: String,
+    buyer_name: String,
+    buyer_contact: Number,
+    branchId: {
+      type: String,
+    },
+    orderId: {
+      type: String,
+      unique: true,
+    },
+    orderItems: {
+      type: Array,
+    },
+    smId: {
+      type: String,
+    },
+    orderValue: {
+      type: Number,
+    },
+    orderPurchaseValue: {
+      type: Number,
+    },
+    deliveryCharge: {
+      type: Number,
+    },
+    orderDate: {
+      type: Date,
+      default: Date.now,
+    },
+    address: ADDRESS_SCHEMA,
+    status: {
+      type: String,
+    },
+    alternateContactNumber: {
+      type: Number,
+    },
+    transactionId: {
+      type: String,
+    },
+    transactionStatus: {
+      type: String,
+    },
+    deliveryDocketNumber: {
+      type: String,
+    },
+    deliveryServiceName: {
+      type: String,
+    },
   },
-  orderId: {
-    type: String,
-    unique: true,
-  },
-  orderItems: {
-    type: Array,
-  },
-  smId: {
-    type: String,
-  },
-  orderValue: {
-    type: Number,
-  },
-  orderPurchaseValue: {
-    type: Number,
-  },
-  deliveryCharge: {
-    type: Number,
-  },
-  orderDate: {
-    type: Date,
-    default: Date.now,
-  },
-  address: ADDRESS_SCHEMA,
-  status: {
-    type: String,
-  },
-  alternateContactNumber: {
-    type: Number,
-  },
-  transactionId: {
-    type: String,
-  },
-  transactionStatus: {
-    type: String,
-  },
-  deliveryDocketNumber: {
-    type: String,
-  },
-  deliveryServiceName: {
-    type: String,
-  },
-});
+  { timestamps: true }
+);
 
 // Schema for creating user model
-export const USER_SCHEMA = new Schema({
-  serialNumber: {
-    type: Number,
-    unique: true,
+export const USER_SCHEMA = new Schema(
+  {
+    serialNumber: {
+      type: Number,
+      unique: true,
+    },
+    smId: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    guideId: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+    },
+    phoneNumber: {
+      type: Number,
+      unique: true,
+      required: true,
+    },
+    password: {
+      type: String,
+    },
+    cartData: {
+      type: Object,
+    },
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+    state: {
+      type: String,
+    },
+    city: {
+      type: String,
+    },
+    address: {
+      type: String,
+    },
+    pincode: {
+      type: Number,
+    },
+    total_pv: {
+      type: Number,
+      default: 0,
+    },
+    addresses: [ADDRESS_SCHEMA],
+    isAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
   },
-  smId: {
-    type: String,
-    unique: true,
-    required: true,
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  guideId: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-  },
-  phoneNumber: {
-    type: Number,
-    unique: true,
-    required: true,
-  },
-  password: {
-    type: String,
-  },
-  cartData: {
-    type: Object,
-  },
-  date: {
-    type: Date,
-    default: Date.now,
-  },
-  state: {
-    type: String,
-  },
-  city: {
-    type: String,
-  },
-  address: {
-    type: String,
-  },
-  pincode: {
-    type: Number,
-  },
-  total_pv: {
-    type: Number,
-    default: 0,
-  },
-  addresses: [ADDRESS_SCHEMA],
-  isAdmin: {
-    type: Boolean,
-    default: false,
-  },
-  isActive: {
-    type: Boolean,
-    default: false,
-  },
-});
+  { timestamps: true }
+);
 
 // Schema for product model
-export const PRODUCT_SCHEMA = new Schema({
-  id: {
-    type: Number,
-    required: true,
+export const PRODUCT_SCHEMA = new Schema(
+  {
+    id: {
+      type: Number,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    image: {
+      type: String,
+      required: true,
+    },
+    category: {
+      type: String,
+      required: true,
+    },
+    market_retail_price: {
+      type: Number,
+      required: true,
+    },
+    shoora_price: {
+      type: Number,
+      required: true,
+    },
+    purchase_value: {
+      type: Number,
+      required: true,
+    },
+    date: {
+      type: Date,
+      default: Date.now,
+    },
+    available: {
+      type: Boolean,
+      default: true,
+    },
+    tax_rate: {
+      type: String,
+      required: true,
+    },
+    quantity_value: {
+      type: Number,
+      required: true,
+    },
+    quantity_unit: {
+      type: String,
+      required: true,
+    },
   },
-  name: {
-    type: String,
-    required: true,
-  },
-  image: {
-    type: String,
-    required: true,
-  },
-  category: {
-    type: String,
-    required: true,
-  },
-  market_retail_price: {
-    type: Number,
-    required: true,
-  },
-  shoora_price: {
-    type: Number,
-    required: true,
-  },
-  purchase_value: {
-    type: Number,
-    required: true,
-  },
-  date: {
-    type: Date,
-    default: Date.now,
-  },
-  available: {
-    type: Boolean,
-    default: true,
-  },
-  tax_rate: {
-    type: String,
-    required: true,
-  },
-  quantity_value: {
-    type: Number,
-    required: true,
-  },
-  quantity_unit: {
-    type: String,
-    required: true,
-  },
-});
+  { timestamps: true }
+);
 
 // Schema for branch model
-export const BRANCH_SCHEMA = new Schema({
-  serialNumber: {
-    type: Number,
-    unique: true,
+export const BRANCH_SCHEMA = new Schema(
+  {
+    serialNumber: {
+      type: Number,
+      unique: true,
+    },
+    branch_id: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+    branch_name: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+    address: {
+      type: ADDRESS_SCHEMA,
+      required: true,
+    },
+    gst_no: {
+      type: String,
+      required: true,
+    },
+    fssai_no: {
+      type: Number,
+      required: true,
+    },
+    login_password: {
+      type: String,
+      required: true,
+    },
+    email_address: {
+      type: String,
+    },
   },
-  branch_id: {
-    type: String,
-    unique: true,
-    required: true,
-  },
-  branch_name: {
-    type: String,
-    unique: true,
-    required: true,
-  },
-  address: {
-    type: ADDRESS_SCHEMA,
-    required: true,
-  },
-  gst_no: {
-    type: String,
-    required: true,
-  },
-  fssai_no: {
-    type: Number,
-    required: true,
-  },
-  login_password: {
-    type: String,
-    required: true,
-  },
-  email_address: {
-    type: String,
-  },
-});
+  { timestamps: true }
+);
 
 // Order model
 export const Orders = mongoose.model("orders", ORDER_SCHEMA);

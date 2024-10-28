@@ -319,6 +319,24 @@ app.post(
   }
 );
 
+app.post(
+  "/api/removeallquantityofitemfromcart",
+  fetchuser,
+  async (req: Request, res: Response) => {
+    let userData = await Users.findOne({ smId: req.body.user.id });
+    if (userData) {
+      if (userData.cartData[req.body.itemId] != 0) {
+        userData.cartData[req.body.itemId] = 0;
+      }
+      await Users.findOneAndUpdate(
+        { smId: req.body.user.id },
+        { cartData: userData.cartData }
+      );
+    }
+    res.send({ success: true });
+  }
+);
+
 //Create an endpoint for saving the product in cart
 app.post("/api/getcart", fetchuser, async (req: Request, res: Response) => {
   console.log("Get Cart");

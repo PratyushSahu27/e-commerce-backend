@@ -122,12 +122,13 @@ app.post("/api/login", async (req: Request, res: Response) => {
       const data = {
         user: {
           id: user.smId,
+          isActive: user.isActive,
         },
       };
       success = true;
       console.log(user.id);
       const token = jwt.sign(data, "secret_ecom");
-      res.json({ success, token });
+      res.json({ success, token, user });
     } else {
       return res.status(400).json({
         success: success,
@@ -196,7 +197,7 @@ app.post("/api/signup", async (req: Request, res: Response) => {
 
   // Initializing cart
   let cart: { [key: number]: number } = {};
-  for (let i: number = 0; i < 300; i++) {
+  for (let i: number = 0; i < 1000; i++) {
     cart[i] = 0;
   }
 

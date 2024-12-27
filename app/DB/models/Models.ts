@@ -1,3 +1,4 @@
+import { GuideSideEnum } from "./../../utils/user.util.js";
 import mongoose, { Schema } from "mongoose";
 
 // Schema for address
@@ -148,6 +149,11 @@ export const USER_SCHEMA = new Schema(
     isActive: {
       type: Boolean,
       default: false,
+    },
+    guideSide: {
+      type: String,
+      enum: Object.values(GuideSideEnum), // Use the enum values
+      required: true,
     },
   },
   { timestamps: true }

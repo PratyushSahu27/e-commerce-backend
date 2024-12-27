@@ -219,6 +219,7 @@ app.post("/api/signup", async (req: Request, res: Response) => {
       },
     ],
     cartData: cart,
+    guideSide: req.body.guideSide,
   });
 
   await user.save();

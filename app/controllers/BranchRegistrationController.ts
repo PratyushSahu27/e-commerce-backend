@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { Branch } from "../DB/models/Models.js";
-import { makeNDigitNumber } from "../utils/Utils.js";
+import { Branch } from "../DB/models/models.js";
+import { makeNDigitNumber } from "../utils/registration.utils.js";
 
 export default class BranchRegistrationController {
   // The serial number of the last branch registered/added to DB.

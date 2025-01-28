@@ -5,7 +5,7 @@ import {
   number2WordsWithDecimal,
   splitGST,
   splitPriceFromTax,
-} from "../utils/Utils.js";
+} from "../utils/registration.utils.js";
 import { request, Request, Response } from "express";
 import path from "path";
 

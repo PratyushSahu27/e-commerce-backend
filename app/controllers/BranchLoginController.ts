@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
-import { Branch, Users } from "../DB/models/Models.js";
+import { Branch } from "../DB/models/models.js";
 import jwt from "jsonwebtoken";
+import { SECRET_KEYWORD } from "../utils/router.utils.js";
 
 export default class BranchLoginController {
   branchLogin = async (request: Request, response: Response) => {
@@ -15,7 +16,7 @@ export default class BranchLoginController {
           },
         };
         success = true;
-        const token = jwt.sign(data, "secret_ecom");
+        const token = jwt.sign(data, SECRET_KEYWORD);
         response.json({ success, token });
       } else {
         return response.status(400).json({

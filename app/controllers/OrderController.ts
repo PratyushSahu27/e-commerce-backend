@@ -1,5 +1,5 @@
 import { request, Request, Response } from "express";
-import { Branch, Orders, Users } from "../../app/DB/models/Models.js";
+import { Branch, Orders, Users } from "../DB/models/models.js";
 import { orderStatus, transactionStatus } from "../utils/order.util.js";
 import axios from "axios";
 

@@ -1,0 +1,18 @@
+import express from "express";
+import {
+  addProduct,
+  removeProduct,
+  getAllProducts,
+} from "../controllers/ProductController";
+
+const router = express.Router();
+
+router.route("/addproduct").post(addProduct);
+
+router.route("/removeproduct").post(removeProduct);
+
+router.route("/allproducts").post(getAllProducts);
+
+router.route("/newcollections").post(removeProduct);
+
+export default router;

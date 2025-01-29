@@ -1,7 +1,7 @@
-import { Users } from "../DB/models/models";
+import { Users } from "../DB/models/models.js";
 import jwt from "jsonwebtoken";
 import { Request, Response } from "express";
-import { SECRET_KEYWORD } from "../utils/router.utils";
+import { SECRET_KEYWORD } from "../utils/router.utils.js";
 
 export const userLogin = async (req: Request, res: Response) => {
   console.log("Login");

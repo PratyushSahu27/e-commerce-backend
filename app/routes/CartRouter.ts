@@ -1,5 +1,4 @@
-import { removeAllQuantityOfItemFromCart } from "./../controllers/CartController";
-import { fetchUserOrBranch } from "./../utils/router.utils";
+import { fetchUserOrBranch } from "./../utils/router.utils.js";
 import express from "express";
 import {
   addAllToCart,
@@ -7,7 +6,8 @@ import {
   setCart,
   removeFromCart,
   addToCart,
-} from "../controllers/CartController";
+  removeAllQuantityOfItemFromCart,
+} from "../controllers/CartController.js";
 
 const router = express.Router();
 

@@ -70,6 +70,14 @@ export const USER_SCHEMA = new Schema(
       enum: Object.values(GuideSideEnum), // Use the enum values
       required: true,
     },
+    leftChild: {
+      type: String,
+      default: null,
+    },
+    rightChild: {
+      type: String,
+      default: null,
+    },
   },
   { timestamps: true }
 );

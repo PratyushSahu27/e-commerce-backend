@@ -1,4 +1,4 @@
-import { smIdGenerator } from "./../utils/registration.utils";
+import { smIdGenerator } from "./../utils/registration.utils.js";
 import { Request, Response } from "express";
 import { Users } from "../DB/models/models.js";
 import { SECRET_KEYWORD } from "../utils/router.utils.js";

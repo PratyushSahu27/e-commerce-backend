@@ -11,7 +11,7 @@ import {
 
 const router = express.Router();
 
-router.route("/getcart").post(getCart);
+router.route("/getcart").post(fetchUserOrBranch, getCart);
 
 router.route("/setcart").post(setCart);
 

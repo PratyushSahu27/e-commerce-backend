@@ -101,7 +101,3 @@ app.post(
 https.createServer(options, app).listen(process.env.PORT || port, () => {
   console.log("Server Running on port " + port);
 });
-
-app.listen(process.env.PORT || port, () => {
-  console.log("Server Running on port " + port);
-});

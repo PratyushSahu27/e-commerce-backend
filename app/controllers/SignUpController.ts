@@ -1,14 +1,28 @@
+import { IUser, USER_SCHEMA } from "./../DB/models/user.model";
 import { smIdGenerator } from "./../utils/registration.utils.js";
 import { Request, Response } from "express";
 import { Users } from "../DB/models/models.js";
 import { SECRET_KEYWORD } from "../utils/router.utils.js";
 import jwt from "jsonwebtoken";
+import { GuideSideEnum } from "../utils/user.util.js";
 
 export const signUp = async (request: Request, response: Response) => {
   console.log("Sign Up");
+  const {
+    phoneNumber,
+    guideId,
+    state,
+    fullName,
+    email,
+    password,
+    city,
+    address,
+    pincode,
+    guideSide,
+  } = request.body;
   try {
     let success = false;
-    let check = await Users.findOne({ phoneNumber: request.body.phoneNumber });
+    let check = await Users.findOne({ phoneNumber });
     if (check) {
       return response.status(400).json({
         success: success,
@@ -16,7 +30,7 @@ export const signUp = async (request: Request, response: Response) => {
       });
     }
 
-    const user1 = await Users.findOne({ smId: request.body.guideId });
+    const user1 = await Users.findOne({ smId: guideId });
     if (!user1) {
       return response.status(400).json({
         success: success,
@@ -54,7 +68,9 @@ export const signUp = async (request: Request, response: Response) => {
     }
 
     // Generating SM ID
-    const newSmId = smIdGenerator(request.body.state, newSerialNumber);
+    const newSmId = smIdGenerator(state, newSerialNumber);
+
+    const parentId = await getParentId(newSmId, guideId, guideSide);
 
     // Initializing cart
     let cart: { [key: number]: number } = {};
@@ -66,21 +82,26 @@ export const signUp = async (request: Request, response: Response) => {
     const user = new Users({
       serialNumber: newSerialNumber,
       smId: newSmId,
-      guideId: request.body.guideId,
-      name: request.body.fullName,
-      phoneNumber: request.body.phoneNumber,
-      email: request.body.email,
-      password: request.body.password,
+      guideId: guideId,
+      name: fullName,
+      phoneNumber: phoneNumber,
+      email: email,
+      password: password,
       addresses: [
         {
-          state: request.body.state,
-          city: request.body.city,
-          address: request.body.address,
-          pincode: request.body.pincode,
+          name: fullName,
+          phoneNumber: phoneNumber,
+          state: state,
+          city: city,
+          address: address,
+          pincode: pincode,
         },
       ],
       cartData: cart,
-      guideSide: request.body.guideSide,
+      guideSide: guideSide,
+      parentId,
+      leftChild: "",
+      rightChild: "",
     });
 
     await user.save();
@@ -92,11 +113,49 @@ export const signUp = async (request: Request, response: Response) => {
 
     const token = jwt.sign(data, SECRET_KEYWORD);
     success = true;
-    response.json({ success, token, newSmId });
-  } catch {
+    response.json({
+      success,
+      token,
+      smId: newSmId,
+      password,
+      parentId,
+      guideId,
+      name: fullName,
+    });
+  } catch (e) {
     return response.status(400).json({
       success: false,
-      errors: `Failed to get register`,
+      errors: `Failed to register: ${e}`,
     });
   }
 };
+
+async function getParentId(smId: string, guideId: string, side: GuideSideEnum) {
+  try {
+    let isSideEmpty = false,
+      currentParentId = guideId;
+    const key = `${side}Child`;
+
+    while (!isSideEmpty) {
+      const user: IUser | null = await Users.findOne({ smId: currentParentId });
+
+      if (!user) {
+        return null;
+      }
+
+      if (!user[key]) {
+        await Users.findOneAndUpdate(
+          { smId: currentParentId },
+          { [key]: smId }
+        );
+        isSideEmpty = true;
+      } else {
+        currentParentId = user[key];
+      }
+    }
+
+    return currentParentId;
+  } catch (e) {
+    console.log("Error in getting parent ID during registration: ", e);
+  }
+}

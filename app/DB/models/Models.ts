@@ -1,6 +1,6 @@
 import { BRANCH_SCHEMA } from "./branch.model.js";
 import { PRODUCT_SCHEMA } from "./product.model.js";
-import { USER_SCHEMA } from "./user.model.js";
+import { IUser, USER_SCHEMA } from "./user.model.js";
 import { ORDER_SCHEMA } from "./order.model.js";
 import mongoose from "mongoose";
 
@@ -8,7 +8,7 @@ import mongoose from "mongoose";
 export const Orders = mongoose.model("orders", ORDER_SCHEMA);
 
 // Users model
-export const Users = mongoose.model("Users", USER_SCHEMA);
+export const Users = mongoose.model<IUser>("Users", USER_SCHEMA);
 
 // Product model
 export const Product = mongoose.model("Product", PRODUCT_SCHEMA);

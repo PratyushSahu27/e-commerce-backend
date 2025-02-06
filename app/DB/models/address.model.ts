@@ -1,15 +1,30 @@
 import { Schema } from "mongoose";
 
-export const ADDRESS_SCHEMA = new Schema(
+export interface IAddress extends Document {
+  name: String;
+  state: String;
+  city: String;
+  address: String;
+  landmark?: String;
+  pincode: Number;
+  phoneNumber: Number;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export const ADDRESS_SCHEMA = new Schema<IAddress>(
   {
     name: {
       type: String,
+      required: true,
     },
     state: {
       type: String,
+      required: true,
     },
     city: {
       type: String,
+      required: true,
     },
     address: {
       type: String,
@@ -24,6 +39,7 @@ export const ADDRESS_SCHEMA = new Schema(
     },
     phoneNumber: {
       type: Number,
+      required: true,
     },
   },
   { timestamps: true }

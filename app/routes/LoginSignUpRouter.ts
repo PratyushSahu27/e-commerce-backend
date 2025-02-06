@@ -1,3 +1,4 @@
+import { signUp } from "./../controllers/SignUpController.js";
 import express from "express";
 import BranchLoginController from "../controllers/BranchLoginController.js";
 import { getUserOrBranch } from "../controllers/GetUserOrBranchController.js";
@@ -8,7 +9,7 @@ const router = express.Router();
 
 const branchLoginController = new BranchLoginController();
 
-router.route("/signup").post(userLogin);
+router.route("/signup").post(signUp);
 
 router.route("/login").post(userLogin);
 

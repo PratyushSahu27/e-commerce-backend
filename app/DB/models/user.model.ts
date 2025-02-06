@@ -1,8 +1,35 @@
 import { Schema } from "mongoose";
 import { GuideSideEnum } from "../../utils/user.util.js";
-import { ADDRESS_SCHEMA } from "./address.model.js";
+import { ADDRESS_SCHEMA, IAddress } from "./address.model.js";
 
-export const USER_SCHEMA = new Schema(
+export interface IUser extends Document {
+  [key: string]: any; // Allows dynamic property access
+  serialNumber?: number;
+  smId: string;
+  name: string;
+  guideId: string;
+  email: string;
+  phoneNumber: number;
+  password?: string;
+  cartData?: Record<string, any>; // Generic object type
+  date?: Date;
+  state?: string;
+  city?: string;
+  address?: string;
+  pincode?: number;
+  total_pv?: number;
+  addresses?: IAddress[]; // Assuming ADDRESS_SCHEMA maps to IAddress
+  isAdmin?: boolean;
+  isActive?: boolean;
+  guideSide: GuideSideEnum;
+  parentId?: string;
+  leftChild?: string | null;
+  rightChild?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export const USER_SCHEMA = new Schema<IUser>(
   {
     serialNumber: {
       type: Number,
@@ -69,6 +96,10 @@ export const USER_SCHEMA = new Schema(
       type: String,
       enum: Object.values(GuideSideEnum), // Use the enum values
       required: true,
+    },
+    parentId: {
+      type: String,
+      default: "",
     },
     leftChild: {
       type: String,

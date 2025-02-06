@@ -37,7 +37,11 @@ export const addToCart = async (req: Request, res: Response) => {
   console.log("Add Cart");
   let userData = await Users.findOne({ smId: req.body.user.id });
   if (userData) {
-    userData.cartData[req.body.itemId] += 1;
+    const { itemId } = req.body;
+    if (!userData.cartData) {
+      userData.cartData = {}; // Initialize it as an empty object
+    }
+    userData.cartData[itemId] = (userData.cartData[itemId] || 0) + 1;
     await Users.findOneAndUpdate(
       { smId: req.body.user.id },
       { cartData: userData.cartData }
@@ -52,6 +56,9 @@ export const addAllToCart = async (request: Request, response: Response) => {
     let userData = await Users.findOne({ smId: request.body.user.id });
     if (userData) {
       Object.keys(request.body.cartItems).forEach((itemId) => {
+        if (!userData.cartData) {
+          userData.cartData = {}; // Initialize it as an empty object
+        }
         if (request.body.cartItems[itemId] > 0) {
           userData.cartData[itemId] += request.body.cartItems[itemId];
         }
@@ -76,7 +83,13 @@ export const removeFromCart = async (request: Request, response: Response) => {
   try {
     let userData = await Users.findOne({ smId: request.body.user.id });
     if (userData) {
-      if (userData.cartData[request.body.itemId] != 0) {
+      if (!userData.cartData) {
+        userData.cartData = {}; // Initialize it as an empty object
+      }
+      if (
+        userData.cartData[request.body.itemId] &&
+        userData.cartData[request.body.itemId] != 0
+      ) {
         userData.cartData[request.body.itemId] -= 1;
       }
       await Users.findOneAndUpdate(
@@ -101,7 +114,13 @@ export const removeAllQuantityOfItemFromCart = async (
   try {
     let userData = await Users.findOne({ smId: request.body.user.id });
     if (userData) {
-      if (userData.cartData[request.body.itemId] != 0) {
+      if (!userData.cartData) {
+        userData.cartData = {}; // Initialize it as an empty object
+      }
+      if (
+        userData.cartData[request.body.itemId] &&
+        userData.cartData[request.body.itemId] != 0
+      ) {
         userData.cartData[request.body.itemId] = 0;
       }
       await Users.findOneAndUpdate(

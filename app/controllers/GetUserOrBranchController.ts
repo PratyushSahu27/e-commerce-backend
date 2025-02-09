@@ -27,6 +27,7 @@ export const getUserOrBranch = async (request: Request, response: Response) => {
         {
           _id: 0,
           branch_name: 1,
+          branch_id: 1,
           address: 1,
           email_address: 1,
         }

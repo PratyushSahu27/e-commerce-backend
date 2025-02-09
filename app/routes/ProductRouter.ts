@@ -11,7 +11,7 @@ router.route("/addproduct").post(addProduct);
 
 router.route("/removeproduct").post(removeProduct);
 
-router.route("/allproducts").post(getAllProducts);
+router.route("/allproducts").get(getAllProducts);
 
 router.route("/newcollections").post(removeProduct);
 

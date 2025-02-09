@@ -30,7 +30,7 @@ export const addProduct = async (request: Request, response: Response) => {
     console.log("Saved");
     response.json({ success: true, name: request.body.name });
   } catch {
-    return response.status(400).json({
+    response.status(400).json({
       success: false,
       errors: "Failed to add product",
     });
@@ -43,19 +43,20 @@ export const removeProduct = async (request: Request, response: Response) => {
     console.log("Removed");
     response.json({ success: true, name: request.body.name });
   } catch {
-    return response.status(400).json({
+    response.status(400).json({
       success: false,
       errors: "Failed to remove product",
     });
   }
 };
 
-export const getAllProducts = async (response: Response) => {
+export const getAllProducts = async (request: Request, response: Response) => {
   console.log("All Products");
   try {
-    response.send({ success: true, product: await Product.find({}) });
+    const products = await Product.find({});
+    response.send({ success: true, products: products });
   } catch {
-    return response.status(400).json({
+    response.status(400).json({
       success: false,
       errors: "Failed to get all products",
     });
@@ -69,7 +70,7 @@ export const getNewCollections = async (response: Response) => {
     let products = await Product.find({});
     response.send({ products: products.slice(1).slice(-8) });
   } catch {
-    return response.status(400).json({
+    response.status(400).json({
       success: false,
       errors: "Failed to get all products",
     });

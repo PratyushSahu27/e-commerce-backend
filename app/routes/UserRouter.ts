@@ -4,6 +4,7 @@ import {
   changeUserActiveStatus,
   getDirectJoinees,
   getUser,
+  getUserTree,
 } from "../controllers/UserController.js";
 
 const router = express.Router();
@@ -15,5 +16,7 @@ router.route("/changeUserActiveStatus").post(changeUserActiveStatus);
 router.route("/getdirectjoinees").post(getDirectJoinees);
 
 router.route("/addaddress").post(addAddress);
+
+router.route("/getusertree").post(getUserTree);
 
 export default router;

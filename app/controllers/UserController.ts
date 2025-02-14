@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Users } from "../DB/models/models.js";
+import { buildBinaryTree, fetchUserBySmId } from "../utils/user.util.js";
 
 export const getUser = async (request: Request, response: Response) => {
   try {
@@ -65,5 +66,22 @@ export const addAddress = async (request: Request, response: Response) => {
   } catch (e) {
     console.log("Unable to add address", e);
     response.send({ successful: false });
+  }
+};
+
+export const getUserTree = async (req: Request, res: Response) => {
+  try {
+    const { smId } = req.body;
+    if (!smId) return res.status(400).json({ error: "smId is required" });
+
+    const user = await fetchUserBySmId(smId);
+
+    const tree = await buildBinaryTree(smId);
+    if (!tree) return res.status(404).json({ error: "User not found" });
+
+    res.json({ parent: user?.parentId, tree });
+  } catch (error) {
+    console.error("Error building tree:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };

@@ -16,6 +16,7 @@ export const getUserOrBranch = async (request: Request, response: Response) => {
           guideId: 1,
           email: 1,
           total_pv: 1,
+          isActive: 1
         }
       );
       response.json({ userData, state: "User" });

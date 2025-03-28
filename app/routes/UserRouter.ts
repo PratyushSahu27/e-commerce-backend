@@ -2,6 +2,7 @@ import express from "express";
 import {
   addAddress,
   changeUserActiveStatus,
+  changeUserPassword,
   getDirectJoinees,
   getUser,
   getUserTree,
@@ -18,5 +19,7 @@ router.route("/getdirectjoinees").post(getDirectJoinees);
 router.route("/addaddress").post(addAddress);
 
 router.route("/getusertree").post(getUserTree);
+
+router.route("/changepassword").post(changeUserPassword)
 
 export default router;

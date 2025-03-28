@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Users } from "../DB/models/models.js";
 import { buildBinaryTree, fetchUserBySmId } from "../utils/user.util.js";
+import { IUser } from "../DB/models/user.model.js";
 
 export const getUser = async (request: Request, response: Response) => {
   try {
@@ -85,3 +86,25 @@ export const getUserTree = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const changeUserPassword = async (req: Request, res: Response) => {
+  try {
+    const { smId, oldPassword, newPassword} = req.body;
+    const user: IUser | null = await fetchUserBySmId(smId);
+
+    if(!user) {
+      res.json({success: false, error: "User not found."});
+      return;
+    }
+
+    if(user.password === oldPassword) {
+      await Users.findOneAndUpdate({smId: smId}, {password: newPassword});
+    } else {
+      res.json({success: false, message: "Passsword reset failed! Old passowrd is wrong."});
+    }
+    res.json({success: true, message: "Password reset success."});
+  } catch (error) {
+    console.error("Error resetting password for user: ", req.body.smId ," - ", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}

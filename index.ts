@@ -93,7 +93,7 @@ app.post(
   (req: Request, res: Response) => {
     res.json({
       success: 1,
-      image_url: `https://shooramall.com/api/images/${req.file?.filename}`,
+      image_url: `https://shooramall.in/api/images/${req.file?.filename}`,
     });
   }
 );

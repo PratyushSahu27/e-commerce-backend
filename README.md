@@ -31,8 +31,14 @@ cd ecommerce-backend
 Install dependencies:
 
 npm install
+
 Environment Variables
 Create a .env file in the root directory and add the following environment variables:
+DB_URL = mongodb+srv://<username>:<password>@cluster0... (Create a free mongodb database and add URL here)
+PORT = 8080
+PHONEPE_MERCHANT_ID = PGTESTPAYUAT86
+PHONEPE_SALT_KEY = 96434309-7796-489d-8924-ab56988a6076
+
 
 Running the Application
 To start the development server:
